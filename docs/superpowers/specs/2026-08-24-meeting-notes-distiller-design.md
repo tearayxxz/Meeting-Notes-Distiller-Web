@@ -55,7 +55,7 @@ Action recognition covers direct assignments (`Bob, please ...`), obligation lan
 
 ## API and error handling
 
-`POST /api/analyze` accepts up to ten `.txt` files, each no larger than 1 MiB. Unsupported extensions, empty files, invalid payloads, and processing exceptions become sanitized per-file errors. One failed file does not discard other results. A request with no files returns HTTP 400.
+`POST /api/analyze` accepts up to ten `.txt` files. A 10 MiB transport cap prevents unbounded memory use; the service then enforces the 1 MiB transcript limit per file so an oversized file can fail without discarding valid peers. Unsupported extensions, invalid UTF-8, empty files, invalid payloads, and processing exceptions become sanitized per-file errors. A request with no files returns HTTP 400.
 
 `POST /api/report` validates a structured analysis batch before generation. Invalid report data returns a generic 400 response. Unexpected errors return a generic 500 response; stack traces remain server-side. DOCX output uses the `docx` package and descriptive headings, tables, lists, warning styling, page breaks, and document properties.
 

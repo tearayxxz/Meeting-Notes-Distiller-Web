@@ -1,0 +1,3 @@
+[09:00] Alice - We should release the application next Friday.
+[09:02] Bob - I agree.
+[09:05] Alice - Bob, please prepare the production server by Thursday.

@@ -1,0 +1,4 @@
+Alice: We considered Monday and Tuesday for the release.
+Bob: Tuesday gives us more testing time.
+Alice: We decided to launch on Tuesday.
+Bob: Alice will publish the announcement by Monday.

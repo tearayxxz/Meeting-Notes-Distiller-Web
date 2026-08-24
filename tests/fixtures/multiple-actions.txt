@@ -1,0 +1,3 @@
+Alice: Bob, please prepare the production server by Thursday.
+Bob: I will verify the database migration tomorrow.
+Alice: We need to confirm the launch checklist.

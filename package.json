@@ -1,0 +1,73 @@
+{
+  "name": "meeting-notes-distiller-web",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "npm@11.19.0",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "workspaces": [
+    "frontend",
+    "backend",
+    "shared"
+  ],
+  "scripts": {
+    "dev": "concurrently -k -n API,WEB -c cyan,magenta \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "npm run build -w @meeting-distiller/shared && npm run dev -w @meeting-distiller/backend",
+    "dev:frontend": "npm run dev -w @meeting-distiller/frontend",
+    "lint": "eslint . --max-warnings=0",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "build": "npm run build -w @meeting-distiller/shared && npm run build -w @meeting-distiller/backend && npm run build -w @meeting-distiller/frontend",
+    "start": "npm run start -w @meeting-distiller/backend",
+    "e2e": "playwright test",
+    "e2e:install": "playwright install chromium",
+    "verify:artifacts": "node scripts/verify-artifacts.mjs",
+    "verify": "npm run lint && npm test && npm run build && npm run e2e && npm run verify:artifacts"
+  },
+  "dependencies": {
+    "@radix-ui/react-tabs": "1.1.21",
+    "@radix-ui/react-tooltip": "1.2.16",
+    "class-variance-authority": "0.7.1",
+    "clsx": "2.1.1",
+    "docx": "9.7.1",
+    "express": "5.2.1",
+    "lucide-react": "1.34.0",
+    "multer": "2.2.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "tailwind-merge": "3.6.0",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.62.1",
+    "@tailwindcss/vite": "4.3.3",
+    "@testing-library/jest-dom": "7.0.1",
+    "@testing-library/react": "16.3.2",
+    "@testing-library/user-event": "14.6.6",
+    "@types/adm-zip": "0.5.8",
+    "@types/express": "5.0.6",
+    "@types/multer": "2.2.0",
+    "@types/node": "24.10.1",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.5",
+    "@types/supertest": "7.2.1",
+    "@vitejs/plugin-react": "6.1.0",
+    "@vitest/coverage-v8": "4.1.11",
+    "adm-zip": "0.6.0",
+    "concurrently": "9.2.4",
+    "eslint": "10.9.0",
+    "jsdom": "30.0.1",
+    "supertest": "7.2.2",
+    "tailwindcss": "4.3.3",
+    "tsx": "4.23.12",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.67.0",
+    "vite": "8.2.2",
+    "vitest": "4.1.11"
+  }
+}
