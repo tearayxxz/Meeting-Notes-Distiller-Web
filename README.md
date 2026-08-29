@@ -17,6 +17,8 @@ Meeting Notes Distiller Web is a local, deterministic web application that turns
 - Valid downloadable Word report with all analyzed sections and grouped actions.
 - Responsive Tailwind/shadcn dashboard with reduced-motion-safe Motion transitions plus loading, empty, success, and error feedback.
 - Light, Dark, and original **Web-Slinger** appearance themes. The selected theme is remembered in `localStorage`; Web-Slinger adds a restrained one-shot web effect and comic-style warning stamps without delaying analysis.
+- Adaptive layered 2.5D depth across Light, Dark, and Web-Slinger themes, with bounded desktop pointer tilt, touch-safe press feedback, and reduced-motion static fallbacks.
+- Non-blocking sun/moon horizon transitions for direct Light/Dark switching.
 - Unit, schema, API, component, artifact-integrity, and Playwright E2E coverage.
 
 ## Tech Stack
@@ -45,6 +47,9 @@ TXT upload -> validation -> text cleanup -> format normalization
 - **Extraction:** focused modules extract participants from real speakers, attendee/facilitator metadata, and narrowly tested narrative-name patterns; section headings drive structured topics while deterministic language rules derive decisions, actions, and flags.
 - **Conflict detection:** multi-option discussions and explicitly unresolved sections become no-decision flags. Competing dates are grouped by topic, and the tested Thai launch fixture additionally detects contradictory feature-freeze and dashboard timing.
 - **DOCX generation:** the report service renders each meeting, topics, decision status, owner/deadline/evidence, warnings, failures, and global owner grouping.
+- **Layered interface:** `TiltSurface` applies bounded, desktop-only pointer depth to the five focused surfaces from pure depth geometry, while CSS theme tokens supply Light, Dark, and Web-Slinger perspective, contrast, and decorative styling.
+- **Theme transitions:** `CelestialTransition` is a click-through, non-blocking sun/moon overlay for direct Light/Dark switches; Web-Slinger uses its separate click-through THWIP effect. Theme selection persists immediately under `meeting-distiller-theme`.
+- **2.5D limitation:** The interface uses CSS/Motion 2.5D perspective rather than WebGL or true 3D models; touch devices intentionally omit pointer and gyroscope tracking.
 - **Tests:** unit tests target normalization and semantics; Supertest targets API boundaries; Testing Library targets queue behavior; Playwright targets complete browser workflows.
 
 ## Directory Structure
