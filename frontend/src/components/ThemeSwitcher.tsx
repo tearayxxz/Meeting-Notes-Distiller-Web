@@ -19,6 +19,7 @@ export function ThemeSwitcher({ theme, onChange }: ThemeSwitcherProps) {
     <div
       role="group"
       aria-label="Appearance theme"
+      data-depth="calm"
       className="theme-switcher flex w-full items-center rounded-xl border bg-background/90 p-1 shadow-sm sm:w-auto"
     >
       {options.map(({ value, label, icon: Icon }) => {

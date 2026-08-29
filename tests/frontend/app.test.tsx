@@ -131,6 +131,26 @@ describe('Meeting Notes Distiller dashboard', () => {
     expect(screen.getByText('No transcripts selected')).toBeInTheDocument();
   });
 
+  it('keeps theme and meeting navigator controls as calm static-depth hooks', async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify(batch), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    })));
+    render(<App />);
+
+    expect(screen.getByRole('group', { name: 'Appearance theme' })).toHaveAttribute('data-depth', 'calm');
+
+    await user.upload(
+      screen.getByLabelText('Choose transcript files'),
+      new File(['Alice: We decided to launch Friday.'], 'launch.txt', { type: 'text/plain' }),
+    );
+    await user.click(screen.getByRole('button', { name: 'Analyze Meetings' }));
+
+    expect(await screen.findByRole('region', { name: 'Meeting navigator' })).toHaveAttribute('data-depth', 'calm');
+    expect(screen.getAllByTestId('meeting-tilt-surface')).toHaveLength(1);
+  });
+
   it('applies focused depth to upload and analyzed-result surfaces', async () => {
     const user = userEvent.setup();
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify(batch), {

@@ -1,6 +1,6 @@
 import type { MeetingAnalysis } from '@meeting-distiller/shared';
 import { AlertTriangle, ChevronLeft, ChevronRight, FileText, ListChecks, UsersRound } from 'lucide-react';
-import { AnimatePresence, domAnimation, LazyMotion, useReducedMotion } from 'motion/react';
+import { AnimatePresence, domAnimation, LazyMotion, motion, useReducedMotion } from 'motion/react';
 import * as m from 'motion/react-m';
 import { MeetingCard } from '@/components/MeetingCard';
 import { Badge } from '@/components/ui/badge';
@@ -29,9 +29,9 @@ export function MeetingNavigator({ meetings, selectedIndex, onSelect }: MeetingN
   const spring = reduceMotion ? { duration: 0 } : { type: 'spring' as const, stiffness: 260, damping: 30 };
 
   return (
-    <LazyMotion features={domAnimation}>
-      <div className="flex flex-col gap-5">
-        <section aria-label="Meeting navigator" className="meeting-navigator-panel flex flex-col gap-4 rounded-xl border bg-muted/25 p-4 sm:p-5">
+    <div className="flex flex-col gap-5">
+      <LazyMotion features={domAnimation} strict>
+        <section aria-label="Meeting navigator" data-depth="calm" className="meeting-navigator-panel flex flex-col gap-4 rounded-xl border bg-muted/25 p-4 sm:p-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
               <p className="font-heading text-lg font-semibold">Meeting {selectedIndex + 1} of {meetings.length}</p>
@@ -124,19 +124,19 @@ export function MeetingNavigator({ meetings, selectedIndex, onSelect }: MeetingN
           })}
           </nav>
         </section>
+      </LazyMotion>
 
-        <AnimatePresence mode="wait" initial={false}>
-          <m.div
-            key={selectedMeeting.meetingId}
-            initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={reduceMotion ? { opacity: 1 } : { opacity: 0, y: -8 }}
-            transition={reduceMotion ? { duration: 0 } : { duration: 0.18, ease: 'easeOut' }}
-          >
-            <MeetingCard meeting={selectedMeeting} index={selectedIndex} />
-          </m.div>
-        </AnimatePresence>
-      </div>
-    </LazyMotion>
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={selectedMeeting.meetingId}
+          initial={reduceMotion ? { opacity: 1 } : { opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={reduceMotion ? { opacity: 1 } : { opacity: 0, y: -8 }}
+          transition={reduceMotion ? { duration: 0 } : { duration: 0.18, ease: 'easeOut' }}
+        >
+          <MeetingCard meeting={selectedMeeting} index={selectedIndex} />
+        </motion.div>
+      </AnimatePresence>
+    </div>
   );
 }

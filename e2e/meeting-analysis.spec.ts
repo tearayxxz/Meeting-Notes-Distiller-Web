@@ -36,6 +36,20 @@ test('uses static depth without page overflow on touch mobile', async ({ browser
   await context.close();
 });
 
+test('keeps calm static controls separate from the selected focused meeting', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByRole('group', { name: 'Appearance theme' })).toHaveAttribute('data-depth', 'calm');
+
+  await page.getByLabel('Choose transcript files').setInputFiles([fixture('format-a.txt'), fixture('missing-owner.txt')]);
+  await page.getByRole('button', { name: 'Analyze Meetings' }).click();
+
+  await expect(page.getByRole('region', { name: 'Meeting navigator' })).toHaveAttribute('data-depth', 'calm');
+  await expect(page.getByTestId('meeting-tilt-surface')).toHaveCount(1);
+  await page.getByRole('button', { name: 'Open meeting 2: missing-owner.txt' }).click();
+  await expect(page.getByRole('heading', { name: 'missing-owner.txt' })).toBeVisible();
+  await expect(page.getByTestId('meeting-tilt-surface')).toHaveCount(1);
+});
+
 test('uploads and analyzes a transcript into structured meeting results', async ({ page }) => {
   await page.goto('/');
   await page.getByLabel('Choose transcript files').setInputFiles(fixture('format-a.txt'));
