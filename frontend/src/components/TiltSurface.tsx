@@ -55,7 +55,8 @@ export function TiltSurface({
     if (trackingEnabled && event.pointerType !== 'touch') {
       bounds.current = event.currentTarget.getBoundingClientRect();
       const token = getComputedStyle(event.currentTarget).getPropertyValue('--depth-max-rotate');
-      maxRotation.current = Math.max(0, Math.min(6, Number.parseFloat(token) || 4));
+      const parsedRotation = Number.parseFloat(token);
+      maxRotation.current = Math.max(0, Math.min(6, Number.isNaN(parsedRotation) ? 4 : parsedRotation));
       rawLift.set(-4);
       event.currentTarget.dataset.tiltActive = 'true';
     }

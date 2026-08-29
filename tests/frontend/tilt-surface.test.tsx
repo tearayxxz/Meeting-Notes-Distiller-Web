@@ -113,6 +113,22 @@ describe('TiltSurface', () => {
     expect(depthState.maxRotations).toEqual([0, 6]);
   });
 
+  it('preserves a valid zero CSS rotation token', () => {
+    installMatchMedia(true, true);
+    render(<TiltSurface data-testid="surface">Content</TiltSurface>);
+    const surface = screen.getByTestId('surface');
+    vi.spyOn(surface, 'getBoundingClientRect').mockReturnValue({
+      left: 0, top: 0, width: 200, height: 100, right: 200, bottom: 100,
+      x: 0, y: 0, toJSON: () => ({}),
+    });
+
+    surface.style.setProperty('--depth-max-rotate', '0deg');
+    fireEvent.pointerEnter(surface, { pointerType: 'mouse', clientX: 100, clientY: 50 });
+    fireEvent.pointerMove(surface, { pointerType: 'mouse', clientX: 190, clientY: 10 });
+
+    expect(depthState.maxRotations).toEqual([0]);
+  });
+
   it('renders a pointer-transparent glare overlay', () => {
     installMatchMedia(false, false);
     render(<TiltSurface data-testid="surface">Content</TiltSurface>);
