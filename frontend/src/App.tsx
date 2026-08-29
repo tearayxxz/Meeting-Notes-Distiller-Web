@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { FileQueue, fileKey } from '@/components/FileQueue';
 import { GlobalActions } from '@/components/GlobalActions';
-import { MeetingCard } from '@/components/MeetingCard';
+import { MeetingNavigator } from '@/components/MeetingNavigator';
 import { ProblemPanel } from '@/components/ProblemPanel';
 import { UploadZone } from '@/components/UploadZone';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -24,6 +24,7 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
   const [reporting, setReporting] = useState(false);
+  const [selectedMeetingIndex, setSelectedMeetingIndex] = useState(0);
 
   const problemCount = useMemo(
     () => (analysis?.failures.length ?? 0) +
@@ -51,7 +52,10 @@ export default function App() {
     if (files.length === 0) return;
     setProcessing(true);
     setError(null);
-    try { setAnalysis(await analyzeMeetings(files)); }
+    try {
+      setAnalysis(await analyzeMeetings(files));
+      setSelectedMeetingIndex(0);
+    }
     catch (cause) { setError(cause instanceof Error ? cause.message : 'Meeting analysis failed.'); }
     finally { setProcessing(false); }
   };
@@ -142,8 +146,12 @@ export default function App() {
                     <AlertTriangle data-icon="inline-start" aria-hidden="true" /> Problems ({problemCount})
                   </TabsTrigger>
                 </TabsList>
-                <TabsContent value="meetings" className="mt-5 flex flex-col gap-5">
-                  {analysis.meetings.map((meeting, index) => <MeetingCard key={meeting.meetingId} meeting={meeting} index={index} />)}
+                <TabsContent value="meetings" className="mt-5">
+                  <MeetingNavigator
+                    meetings={analysis.meetings}
+                    selectedIndex={selectedMeetingIndex}
+                    onSelect={setSelectedMeetingIndex}
+                  />
                 </TabsContent>
                 <TabsContent value="actions" className="mt-5"><GlobalActions groups={analysis.groupedActionItems} /></TabsContent>
                 <TabsContent value="problems" className="mt-5"><ProblemPanel failures={analysis.failures} meetings={analysis.meetings} /></TabsContent>

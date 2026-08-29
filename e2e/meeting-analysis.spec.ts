@@ -28,6 +28,14 @@ test('keeps additive upload rounds and groups actions by owner', async ({ page }
   await expect(page.getByText('format-a.txt')).toBeVisible();
   await expect(page.getByText('missing-owner.txt')).toBeVisible();
   await page.getByRole('button', { name: 'Analyze Meetings' }).click();
+
+  await expect(page.getByText('Meeting 1 of 2')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'format-a.txt' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'missing-owner.txt' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Open meeting 2: missing-owner.txt' }).click();
+  await expect(page.getByText('Meeting 2 of 2')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'missing-owner.txt' })).toBeVisible();
+
   await page.getByRole('tab', { name: /Action Items by Owner/ }).click();
 
   await expect(page.getByText('Bob', { exact: true })).toBeVisible();
@@ -72,4 +80,42 @@ test('downloads a structurally recognizable Word report', async ({ page }) => {
   if (!savedPath) throw new Error('Playwright did not provide a downloaded report path.');
   const bytes = await readFile(savedPath);
   expect(bytes.subarray(0, 2).toString()).toBe('PK');
+});
+
+test('renders evidence-based results for all four instructor meeting-note samples', async ({ page }) => {
+  await page.goto('/');
+  await page.getByLabel('Choose transcript files').setInputFiles([
+    fixture('instructor-01-no-decisions-brainstorm.txt'),
+    fixture('instructor-02-structured-with-followups.txt'),
+    fixture('instructor-03-thai-no-decisions-roadmap.txt'),
+    fixture('instructor-04-thai-conflicting-launch.txt'),
+  ]);
+  await page.getByRole('button', { name: 'Analyze Meetings' }).click();
+
+  await expect(page.getByText('Meeting 1 of 4')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'instructor-01-no-decisions-brainstorm.txt' })).toBeVisible();
+  await expect(page.getByText('Sam', { exact: true })).toBeVisible();
+  await expect(page.getByText('Lena', { exact: true })).toBeVisible();
+  await expect(page.getByText('pull data on mobile churn', { exact: true })).toBeVisible();
+  await expect(page.getByText(/No decision detected/).first()).toBeVisible();
+
+  await page.getByRole('button', { name: 'Open meeting 2: instructor-02-structured-with-followups.txt' }).click();
+  await expect(page.getByText('Meeting 2 of 4')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Database performance' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'On-call rotation' })).toBeVisible();
+  await expect(page.getByText('add the index this sprint', { exact: true })).toBeVisible();
+  await expect(page.getByText('research whether to adopt the new logging library', { exact: true })).toBeVisible();
+
+  await page.getByRole('button', { name: 'Open meeting 3: instructor-03-thai-no-decisions-roadmap.txt' }).click();
+  await expect(page.getByText('Meeting 3 of 4')).toBeVisible();
+  await expect(page.getByText('แซม', { exact: true })).toBeVisible();
+  await expect(page.getByText('เลน่า', { exact: true })).toBeVisible();
+  await expect(page.getByText('ดึงข้อมูล churn ของมือถือมาดู', { exact: true })).toBeVisible();
+
+  await page.getByRole('button', { name: 'Open meeting 4: instructor-04-thai-conflicting-launch.txt' }).click();
+  await expect(page.getByText('Meeting 4 of 4')).toBeVisible();
+  await expect(page.getByText('Launch on วันที่ 30', { exact: true })).toBeVisible();
+  await expect(page.getByText('ทำ dashboard ให้เสร็จ', { exact: true })).toBeVisible();
+  await expect(page.getByText(/Published launch dates conflict with the final meeting date/).first()).toBeVisible();
+  await expect(page.getByText(/Feature-freeze timing conflicts/).first()).toBeVisible();
 });

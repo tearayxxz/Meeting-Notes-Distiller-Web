@@ -22,13 +22,13 @@ export default defineConfig({
     {
       command: 'npm run dev:backend',
       url: 'http://127.0.0.1:8787/api/health',
-      reuseExistingServer: false,
+      reuseExistingServer: !process.env.CI,
       timeout: 120_000,
     },
     {
       command: 'npm run dev:frontend',
       url: 'http://127.0.0.1:5173',
-      reuseExistingServer: false,
+      reuseExistingServer: !process.env.CI,
       timeout: 120_000,
     },
   ],
