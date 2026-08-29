@@ -6,8 +6,7 @@ import { errorHandler } from './middleware/errors.js';
 import { analyzeRouter } from './routes/analyze.js';
 import { reportRouter } from './routes/report.js';
 
-export const createApp = () => {
-  const app = express();
+export const createApp = (app = express()) => {
   app.disable('x-powered-by');
   app.use(express.json({ limit: '5mb' }));
   app.get('/api/health', (_request, response) => response.json({ status: 'ok' }));
