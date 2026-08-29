@@ -35,4 +35,13 @@ describe('calculateTilt', () => {
       rotateY: 0,
     });
   });
+
+  it('returns neutral values for a non-positive rotation cap', () => {
+    expect(calculateTilt({ clientX: 100, clientY: 0 }, bounds, -6)).toEqual({
+      normalizedX: 0,
+      normalizedY: 0,
+      rotateX: 0,
+      rotateY: 0,
+    });
+  });
 });

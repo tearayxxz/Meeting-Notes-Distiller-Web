@@ -55,7 +55,7 @@ export function TiltSurface({
     if (trackingEnabled && event.pointerType !== 'touch') {
       bounds.current = event.currentTarget.getBoundingClientRect();
       const token = getComputedStyle(event.currentTarget).getPropertyValue('--depth-max-rotate');
-      maxRotation.current = Number.parseFloat(token) || 4;
+      maxRotation.current = Math.max(0, Math.min(6, Number.parseFloat(token) || 4));
       rawLift.set(-4);
       event.currentTarget.dataset.tiltActive = 'true';
     }
@@ -64,7 +64,7 @@ export function TiltSurface({
 
   const move = (event: PointerEvent<HTMLDivElement>): void => {
     if (trackingEnabled && bounds.current && event.pointerType !== 'touch') {
-      const tilt = calculateTilt(event, bounds.current, Math.min(6, maxRotation.current));
+      const tilt = calculateTilt(event, bounds.current, maxRotation.current);
       rawRotateX.set(tilt.rotateX);
       rawRotateY.set(tilt.rotateY);
       normalizedX.set(tilt.normalizedX);
@@ -89,7 +89,7 @@ export function TiltSurface({
       onPointerUp={(event) => { if (!trackingEnabled) rawLift.set(0); onPointerUp?.(event); }}
     >
       {children}
-      {glare ? <motion.span className="tilt-glare" aria-hidden="true" style={{ background: glareBackground }} /> : null}
+      {glare ? <motion.span className="tilt-glare" aria-hidden="true" style={{ background: glareBackground, pointerEvents: 'none' }} /> : null}
     </motion.div>
   );
 }
