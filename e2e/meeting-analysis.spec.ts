@@ -87,6 +87,17 @@ test('persists the Web-Slinger theme and replays its effect when analysis starts
   await expect(page.getByRole('heading', { name: 'format-a.txt' })).toBeVisible();
 });
 
+test('runs and clears both Light/Dark celestial directions', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Dark theme' }).click();
+  await expect(page.getByTestId('celestial-transition')).toHaveAttribute('data-direction', 'to-dark');
+  await expect(page.getByTestId('celestial-transition')).toBeHidden({ timeout: 2_000 });
+
+  await page.getByRole('button', { name: 'Light theme' }).click();
+  await expect(page.getByTestId('celestial-transition')).toHaveAttribute('data-direction', 'to-light');
+  await expect(page.getByTestId('celestial-transition')).toBeHidden({ timeout: 2_000 });
+});
+
 test('keeps Web-Slinger decorative pseudo-elements out of pointer interaction', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Web-Slinger theme' }).click();

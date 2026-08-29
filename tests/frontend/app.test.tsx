@@ -139,6 +139,20 @@ describe('Meeting Notes Distiller dashboard', () => {
     expect(screen.getByTestId('web-slinger-effect')).toBeInTheDocument();
   });
 
+  it('runs opposite celestial transitions only between Light and Dark', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: 'Dark theme' }));
+    expect(screen.getByTestId('celestial-transition')).toHaveAttribute('data-direction', 'to-dark');
+
+    await user.click(screen.getByRole('button', { name: 'Light theme' }));
+    expect(screen.getByTestId('celestial-transition')).toHaveAttribute('data-direction', 'to-light');
+
+    await user.click(screen.getByRole('button', { name: 'Web-Slinger theme' }));
+    expect(screen.queryByTestId('celestial-transition')).not.toBeInTheDocument();
+  });
+
   it('restores a valid saved theme and ignores an invalid saved value', () => {
     window.localStorage.setItem('meeting-distiller-theme', 'web-slinger');
     const { unmount } = render(<App />);

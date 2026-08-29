@@ -5,6 +5,7 @@ import {
   LoaderCircle, Play, Sparkles, UsersRound,
 } from 'lucide-react';
 import { FileQueue, fileKey } from '@/components/FileQueue';
+import { CelestialTransition } from '@/components/CelestialTransition';
 import { GlobalActions } from '@/components/GlobalActions';
 import { MeetingNavigator } from '@/components/MeetingNavigator';
 import { ProblemPanel } from '@/components/ProblemPanel';
@@ -17,6 +18,7 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { analyzeMeetings, createWordReport } from '@/lib/api';
+import type { CelestialDirection } from '@/components/CelestialTransition';
 import type { Theme } from '@/lib/theme';
 import { useTheme } from '@/lib/theme';
 
@@ -30,6 +32,10 @@ export default function App() {
   const [reporting, setReporting] = useState(false);
   const [selectedMeetingIndex, setSelectedMeetingIndex] = useState(0);
   const [webEffectRun, setWebEffectRun] = useState(0);
+  const [celestial, setCelestial] = useState<{
+    runId: number;
+    direction: CelestialDirection | null;
+  }>({ runId: 0, direction: null });
   const { theme, setTheme } = useTheme();
 
   const problemCount = useMemo(
@@ -68,7 +74,14 @@ export default function App() {
   };
 
   const changeTheme = (nextTheme: Theme): void => {
+    const direction = theme === 'light' && nextTheme === 'dark'
+      ? 'to-dark'
+      : theme === 'dark' && nextTheme === 'light'
+        ? 'to-light'
+        : null;
+
     setTheme(nextTheme);
+    setCelestial((current) => ({ runId: current.runId + 1, direction }));
     if (nextTheme === 'web-slinger') setWebEffectRun((run) => run + 1);
   };
 
@@ -96,6 +109,7 @@ export default function App() {
       <div className={`app-shell min-h-screen bg-muted/35 text-foreground theme-${theme}`}>
         {theme === 'web-slinger' ? <WebThemeBackground /> : null}
         {theme === 'web-slinger' ? <WebSlingerEffect runId={webEffectRun} /> : null}
+        <CelestialTransition runId={celestial.runId} direction={celestial.direction} />
         <header className="app-header relative z-10 border-b bg-background">
           <div className="mx-auto flex max-w-[1440px] flex-col gap-4 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-8">
             <div className="flex items-center gap-3">
