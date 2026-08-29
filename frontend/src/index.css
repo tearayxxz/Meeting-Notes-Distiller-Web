@@ -284,6 +284,7 @@ html[data-theme="web-slinger"] {
 
 .theme-web-slinger .upload-zone::after {
   position: absolute;
+  pointer-events: none;
   right: -3.5rem;
   bottom: -5.2rem;
   width: 12rem;
@@ -349,6 +350,7 @@ html[data-theme="web-slinger"] {
 
 .theme-web-slinger .action-mission::after {
   position: absolute;
+  pointer-events: none;
   top: 0.7rem;
   right: 0.7rem;
   width: 0.45rem;
@@ -369,6 +371,7 @@ html[data-theme="web-slinger"] {
 
 .theme-web-slinger .problem-alert::before {
   position: absolute;
+  pointer-events: none;
   top: 0.65rem;
   right: 0.75rem;
   padding: 0.18rem 0.55rem;

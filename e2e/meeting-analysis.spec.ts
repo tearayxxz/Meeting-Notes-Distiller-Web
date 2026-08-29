@@ -87,6 +87,22 @@ test('persists the Web-Slinger theme and replays its effect when analysis starts
   await expect(page.getByRole('heading', { name: 'format-a.txt' })).toBeVisible();
 });
 
+test('keeps Web-Slinger decorative pseudo-elements out of pointer interaction', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Web-Slinger theme' }).click();
+
+  expect(await page.locator('.upload-zone').evaluate((element) => getComputedStyle(element, '::after').pointerEvents)).toBe('none');
+
+  await page.getByLabel('Choose transcript files').setInputFiles([fixture('format-a.txt'), fixture('no-decision.txt')]);
+  await page.getByRole('button', { name: 'Analyze Meetings' }).click();
+  await expect(page.getByRole('heading', { name: 'format-a.txt' })).toBeVisible();
+  expect(await page.locator('.action-mission').first().evaluate((element) => getComputedStyle(element, '::after').pointerEvents)).toBe('none');
+
+  await page.getByRole('tab', { name: /Problems/ }).click();
+  await expect(page.getByText(/No decision detected/).first()).toBeVisible();
+  expect(await page.locator('.problem-alert').first().evaluate((element) => getComputedStyle(element, '::before').pointerEvents)).toBe('none');
+});
+
 test('downloads a structurally recognizable Word report', async ({ page }) => {
   await page.goto('/');
   await page.getByLabel('Choose transcript files').setInputFiles(fixture('decision.txt'));
