@@ -98,8 +98,6 @@ Depth is applied according to information priority.
 
 - Transcript upload zone while hovered or dragging.
 - Uploaded-file queue as the second half of the upload workspace.
-- Currently selected meeting result.
-- Problem and warning surfaces.
 - Download Word Report action panel.
 
 ### Calmer depth
@@ -108,6 +106,8 @@ Depth is applied according to information priority.
 - Analysis result tabs.
 - Meeting navigator container.
 - Selected meeting selector.
+- Meeting result cards, kept static so long-form information stays readable.
+- Problem and warning collections, with static alert shadows instead of pointer tilt.
 
 ### Flat or nearly flat
 

@@ -36,7 +36,7 @@ test('uses static depth without page overflow on touch mobile', async ({ browser
   await context.close();
 });
 
-test('keeps calm static controls separate from the selected focused meeting', async ({ page }) => {
+test('keeps information-heavy meeting and problem views stable', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('group', { name: 'Appearance theme' })).toHaveAttribute('data-depth', 'calm');
 
@@ -44,10 +44,65 @@ test('keeps calm static controls separate from the selected focused meeting', as
   await page.getByRole('button', { name: 'Analyze Meetings' }).click();
 
   await expect(page.getByRole('region', { name: 'Meeting navigator' })).toHaveAttribute('data-depth', 'calm');
-  await expect(page.getByTestId('meeting-tilt-surface')).toHaveCount(1);
+  await expect(page.getByTestId('meeting-static-surface')).toHaveAttribute('data-depth', 'calm');
+  await expect(page.getByTestId('meeting-tilt-surface')).toHaveCount(0);
   await page.getByRole('button', { name: 'Open meeting 2: missing-owner.txt' }).click();
   await expect(page.getByRole('heading', { name: 'missing-owner.txt' })).toBeVisible();
-  await expect(page.getByTestId('meeting-tilt-surface')).toHaveCount(1);
+  await expect(page.getByTestId('meeting-static-surface')).toHaveCount(1);
+
+  await page.getByRole('tab', { name: /Problems/ }).click();
+  await expect(page.getByTestId('problems-static-surface')).toHaveAttribute('data-depth', 'calm');
+  await expect(page.getByTestId('problems-tilt-surface')).toHaveCount(0);
+});
+
+test('fills the upload frame when the queued-file column grows', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/');
+  await page.getByLabel('Choose transcript files').setInputFiles([
+    fixture('format-a.txt'),
+    fixture('format-b.txt'),
+    fixture('format-c.txt'),
+    fixture('missing-owner.txt'),
+  ]);
+
+  const uploadSurface = page.getByTestId('upload-tilt-surface');
+  const uploadZone = page.locator('.upload-zone');
+  const [surfaceBox, zoneBox] = await Promise.all([
+    uploadSurface.boundingBox(),
+    uploadZone.boundingBox(),
+  ]);
+  expect(surfaceBox).not.toBeNull();
+  expect(zoneBox).not.toBeNull();
+  if (!surfaceBox || !zoneBox) throw new Error('Upload layout did not render measurable boxes.');
+  expect(Math.abs(surfaceBox.height - zoneBox.height)).toBeLessThanOrEqual(2);
+});
+
+test('fits result view tabs across the analysis workspace', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/');
+  await page.getByLabel('Choose transcript files').setInputFiles(fixture('format-a.txt'));
+  await page.getByRole('button', { name: 'Analyze Meetings' }).click();
+
+  const workspace = page.locator('.analysis-workspace');
+  const tabList = page.getByRole('tablist', { name: 'Analysis result views' });
+  const [workspaceBox, tabListBox] = await Promise.all([
+    workspace.boundingBox(),
+    tabList.boundingBox(),
+  ]);
+  expect(workspaceBox).not.toBeNull();
+  expect(tabListBox).not.toBeNull();
+  if (!workspaceBox || !tabListBox) throw new Error('Result tab layout did not render measurable boxes.');
+  expect(tabListBox.width).toBeGreaterThanOrEqual(workspaceBox.width - 48);
+
+  const tabBoxes = await tabList.getByRole('tab').evaluateAll((tabs) => tabs.map((tab) => {
+    const box = tab.getBoundingClientRect();
+    return { bottom: box.bottom, left: box.left, right: box.right, top: box.top, width: box.width };
+  }));
+  expect(tabBoxes).toHaveLength(3);
+  expect(tabBoxes.every((box) => box.width >= 180)).toBe(true);
+  expect(tabBoxes.every((box) => box.top >= tabListBox.y && box.bottom <= tabListBox.y + tabListBox.height)).toBe(true);
+  expect(tabBoxes[1].left).toBeGreaterThanOrEqual(tabBoxes[0].right);
+  expect(tabBoxes[2].left).toBeGreaterThanOrEqual(tabBoxes[1].right);
 });
 
 test('uploads and analyzes a transcript into structured meeting results', async ({ page }) => {

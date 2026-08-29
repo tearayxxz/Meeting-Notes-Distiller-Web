@@ -31,7 +31,7 @@ export function UploadZone({ disabled, onFiles }: UploadZoneProps) {
     <TiltSurface data-testid="upload-tilt-surface" depth="strong" className="h-full" glare>
       <div
         className={cn(
-          'upload-zone web-theme-panel relative flex min-h-64 flex-col items-center justify-center gap-4 overflow-hidden rounded-xl border border-dashed bg-card p-8 text-center shadow-xs transition-colors',
+          'upload-zone web-theme-panel relative flex h-full min-h-64 flex-col items-center justify-center gap-4 overflow-hidden rounded-xl border border-dashed bg-card p-8 text-center shadow-xs transition-colors',
           dragging && 'border-primary bg-primary/5',
           disabled && 'opacity-60',
         )}

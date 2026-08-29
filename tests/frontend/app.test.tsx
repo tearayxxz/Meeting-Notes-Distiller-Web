@@ -131,7 +131,7 @@ describe('Meeting Notes Distiller dashboard', () => {
     expect(screen.getByText('No transcripts selected')).toBeInTheDocument();
   });
 
-  it('keeps theme and meeting navigator controls as calm static-depth hooks', async () => {
+  it('keeps information-heavy meeting and problem views stable', async () => {
     const user = userEvent.setup();
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify(batch), {
       status: 200,
@@ -148,10 +148,15 @@ describe('Meeting Notes Distiller dashboard', () => {
     await user.click(screen.getByRole('button', { name: 'Analyze Meetings' }));
 
     expect(await screen.findByRole('region', { name: 'Meeting navigator' })).toHaveAttribute('data-depth', 'calm');
-    expect(screen.getAllByTestId('meeting-tilt-surface')).toHaveLength(1);
+    expect(screen.getByTestId('meeting-static-surface')).toHaveAttribute('data-depth', 'calm');
+    expect(screen.queryByTestId('meeting-tilt-surface')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('tab', { name: /Problems/ }));
+    expect(screen.getByTestId('problems-static-surface')).toHaveAttribute('data-depth', 'calm');
+    expect(screen.queryByTestId('problems-tilt-surface')).not.toBeInTheDocument();
   });
 
-  it('applies focused depth to upload and analyzed-result surfaces', async () => {
+  it('applies focused depth only to compact interactive surfaces', async () => {
     const user = userEvent.setup();
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify(batch), {
       status: 200,
@@ -168,8 +173,8 @@ describe('Meeting Notes Distiller dashboard', () => {
     );
     await user.click(screen.getByRole('button', { name: 'Analyze Meetings' }));
 
-    expect(await screen.findByTestId('meeting-tilt-surface')).toHaveAttribute('data-depth', 'strong');
-    expect(screen.getByTestId('report-tilt-surface')).toHaveAttribute('data-depth', 'strong');
+    expect(await screen.findByTestId('report-tilt-surface')).toHaveAttribute('data-depth', 'strong');
+    expect(screen.queryByTestId('meeting-tilt-surface')).not.toBeInTheDocument();
   });
 
   it('switches named themes, persists the choice, and launches the Web-Slinger effect', async () => {

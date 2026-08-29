@@ -165,16 +165,16 @@ export default function App() {
               </Alert>
 
               <Tabs defaultValue="meetings" className="analysis-workspace web-theme-panel rounded-xl border bg-background p-4 sm:p-5">
-                <TabsList variant="line" aria-label="Analysis result views" className="grid h-auto w-full grid-cols-3 gap-1 sm:inline-flex sm:h-8 sm:w-fit sm:justify-start">
-                  <TabsTrigger value="meetings" className="min-w-0 py-2 text-xs sm:py-0.5 sm:text-sm">
+                <TabsList aria-label="Analysis result views" className="grid w-full grid-cols-1 gap-1.5 p-1.5 group-data-horizontal/tabs:h-auto sm:grid-cols-3">
+                  <TabsTrigger value="meetings" className="min-h-10 min-w-0 px-3 py-2 text-xs sm:text-sm">
                     <FileCheck2 data-icon="inline-start" aria-hidden="true" />
                     <span className="sm:hidden">Meetings</span><span className="hidden sm:inline">Meeting Results</span>
                   </TabsTrigger>
-                  <TabsTrigger value="actions" className="min-w-0 py-2 text-xs sm:py-0.5 sm:text-sm">
+                  <TabsTrigger value="actions" className="min-h-10 min-w-0 px-3 py-2 text-xs sm:text-sm">
                     <UsersRound data-icon="inline-start" aria-hidden="true" />
                     <span className="sm:hidden">Owners</span><span className="hidden sm:inline">Action Items by Owner</span>
                   </TabsTrigger>
-                  <TabsTrigger value="problems" className="min-w-0 py-2 text-xs sm:py-0.5 sm:text-sm">
+                  <TabsTrigger value="problems" className="min-h-10 min-w-0 px-3 py-2 text-xs sm:text-sm">
                     <AlertTriangle data-icon="inline-start" aria-hidden="true" /> Problems ({problemCount})
                   </TabsTrigger>
                 </TabsList>
