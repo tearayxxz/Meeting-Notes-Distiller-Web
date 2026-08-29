@@ -203,6 +203,28 @@ test('keeps problem status badges visible in Light and Dark themes', async ({ pa
   await expect(conflictStatus).toHaveText('CONFLICT');
 });
 
+test('keeps no-decision warning text readable in Dark theme', async ({ page }) => {
+  await page.setViewportSize({ width: 1169, height: 912 });
+  await page.goto('/');
+  await page.getByLabel('Choose transcript files').setInputFiles(fixture('no-decision.txt'));
+  await page.getByRole('button', { name: 'Analyze Meetings' }).click();
+  await page.getByRole('button', { name: 'Dark theme' }).click();
+
+  const warningTitle = page
+    .locator('[data-testid="meeting-static-surface"] .problem-alert[data-problem-type="no-decision"]')
+    .first()
+    .locator('[data-slot="alert-title"]');
+  await expect(warningTitle).toBeVisible();
+
+  const foregroundLightness = await warningTitle.evaluate((element) => {
+    const color = getComputedStyle(element).color;
+    const match = /^oklch\(([\d.]+)/u.exec(color);
+    if (!match) throw new Error(`Expected an OKLCH warning foreground, received ${color}.`);
+    return Number(match[1]);
+  });
+  expect(foregroundLightness).toBeGreaterThanOrEqual(0.75);
+});
+
 test('uploads and analyzes a transcript into structured meeting results', async ({ page }) => {
   await page.goto('/');
   await page.getByLabel('Choose transcript files').setInputFiles(fixture('format-a.txt'));
