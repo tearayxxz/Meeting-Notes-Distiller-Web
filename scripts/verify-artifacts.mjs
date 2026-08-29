@@ -62,12 +62,12 @@ const results = [
   await validateXlsx(
     'docs/Unit_Test_Cases.xlsx',
     ['Action item without owner', 'Meeting without a final decision', 'Implemented Test Reference'],
-    51,
+    59,
   ),
   await validateXlsx(
     'docs/SIT_UAT_Test_Cases.xlsx',
     ['Upload and analyze one transcript', 'Download Word report', 'User acceptance'],
-    10,
+    11,
   ),
 ];
 

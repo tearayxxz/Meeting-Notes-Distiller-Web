@@ -2,7 +2,7 @@
 
 ## Tech stack
 
-- Frontend: React 19, Vite, TypeScript, Tailwind CSS v4, selected shadcn/ui primitives, and Lucide React.
+- Frontend: React 19, Vite, TypeScript, Tailwind CSS v4, selected shadcn/ui primitives, Lucide React, and Motion for React.
 - Backend: Express 5 and TypeScript.
 - Shared contracts: TypeScript and Zod in `shared/`.
 - Testing: Vitest, Testing Library, Supertest, and Playwright.
@@ -45,6 +45,7 @@
 
 1. Never mix transcript parsing or extraction rules into React components or Express route handlers.
 2. Keep normalization separate from semantic extraction and keep both directly unit-testable.
+   Normalized entries must retain their `speech`, `note`, `heading`, or `metadata` kind so labels and headings cannot become participants.
 3. Do not invent transcript content. Use `null` internally and `Unassigned`/`Not specified` at presentation boundaries.
 4. Treat suggestions as decisions only when later evidence explicitly resolves them.
 5. Preserve successful results when another file in a batch fails where practical.
@@ -52,4 +53,5 @@
 7. Required behavior changes must include tests; fixtures must remain deterministic and offline.
 8. Run the smallest relevant tests while editing, then full verification before declaring completion.
 9. Use shadcn/ui selectively; do not add another component framework.
-10. Do not commit secrets, local environment files, dependencies, coverage, Playwright output, or build artifacts.
+10. Keep UI motion purposeful, brief, and compatible with reduced-motion preferences.
+11. Do not commit secrets, local environment files, dependencies, coverage, Playwright output, or build artifacts.

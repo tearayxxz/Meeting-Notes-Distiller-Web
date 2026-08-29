@@ -9,16 +9,18 @@ Meeting Notes Distiller Web is a local, deterministic web application that turns
 - Explicit **Analyze Meetings** action; files are never processed merely because they were selected.
 - Per-file validation and partial success when another file is empty or unsupported.
 - Four normalized format outcomes: speaker-colon, timestamp-dash, timestamp-block, and safe unstructured fallback.
+- Mixed Markdown meeting notes with titles, metadata, attendee lists, section headings, bullets, and dialogue are normalized without turning labels into speakers.
 - Evidence-bound participants, topic summaries, conservative decisions, action owners, deadlines, and warnings.
+- Regression-tested English and Thai instructor samples cover unresolved brainstorming, structured follow-ups, launch-date conflicts, and contradictory freeze/dashboard work.
 - No-decision, conflicting-date, unassigned-action, empty-transcript, and parse-warning states.
-- Separate meeting result cards plus a global action list grouped by owner.
+- A compact meeting navigator with `Meeting 1 of N`, progress, direct file selection, and one detailed meeting card at a time.
 - Valid downloadable Word report with all analyzed sections and grouped actions.
-- Responsive Tailwind/shadcn dashboard with loading, empty, success, and error feedback.
+- Responsive Tailwind/shadcn dashboard with reduced-motion-safe Motion transitions plus loading, empty, success, and error feedback.
 - Unit, schema, API, component, artifact-integrity, and Playwright E2E coverage.
 
 ## Tech Stack
 
-- **Frontend:** React 19, Vite, TypeScript, Tailwind CSS v4, shadcn/ui primitives, and Lucide React. This keeps the UI typed, responsive, and small without a competing component framework.
+- **Frontend:** React 19, Vite, TypeScript, Tailwind CSS v4, shadcn/ui primitives, Lucide React, and Motion for React. This keeps the UI typed and responsive while adding restrained, accessible transitions without another component framework.
 - **Backend:** Express 5 and TypeScript. It provides multipart upload analysis and Word export endpoints.
 - **Shared:** Zod schemas and TypeScript contracts shared by browser and server.
 - **Extraction:** deterministic rules and heuristics, fully offline and reproducible.
@@ -27,7 +29,7 @@ Meeting Notes Distiller Web is a local, deterministic web application that turns
 
 ## Architecture
 
-The frontend owns file selection, queue state, API calls, feedback, and rendering. Express validates multipart input, isolates per-file failures, runs domain services, and returns shared structured contracts. Neither route handlers nor React components contain extraction rules.
+The frontend owns file selection, queue state, API calls, feedback, animated meeting navigation, and rendering. Express validates multipart input, isolates per-file failures, runs domain services, and returns shared structured contracts. Neither route handlers nor React components contain extraction rules.
 
 Processing follows this path:
 
@@ -38,9 +40,9 @@ TXT upload -> validation -> text cleanup -> format normalization
            -> shared result -> browser and DOCX report
 ```
 
-- **Transcript normalization:** `backend/src/domain/normalizer.ts` detects supported layouts, preserves source evidence, joins continuation lines, and safely falls back to unstructured utterances.
-- **Extraction:** focused modules extract participants, topics, decisions, actions, and problem flags into the Zod-backed model.
-- **Conflict detection:** multi-option discussions without explicit resolution become no-decision flags. Competing dates are grouped by topic before conflict checks, so unrelated deadlines do not conflict.
+- **Transcript normalization:** `backend/src/domain/normalizer.ts` detects supported layouts and types every retained entry as speech, note, heading, or metadata. It keeps bullet evidence separate, joins genuine dialogue continuations, and safely falls back to structured unlabelled notes.
+- **Extraction:** focused modules extract participants from real speakers, attendee/facilitator metadata, and narrowly tested narrative-name patterns; section headings drive structured topics while deterministic language rules derive decisions, actions, and flags.
+- **Conflict detection:** multi-option discussions and explicitly unresolved sections become no-decision flags. Competing dates are grouped by topic, and the tested Thai launch fixture additionally detects contradictory feature-freeze and dashboard timing.
 - **DOCX generation:** the report service renders each meeting, topics, decision status, owner/deadline/evidence, warnings, failures, and global owner grouping.
 - **Tests:** unit tests target normalization and semantics; Supertest targets API boundaries; Testing Library targets queue behavior; Playwright targets complete browser workflows.
 
@@ -140,18 +142,27 @@ Format C — timestamp/speaker header followed by body:
 We should release next Friday.
 ```
 
-Unlabelled prose is also retained as an unstructured transcript with no invented speaker. English is the primary extraction language; targeted Thai assignment, weekday, and explicit-decision patterns are covered.
+Mixed structured notes — metadata, Markdown sections, bullets, and dialogue:
+
+```text
+Attendees: Priya, Marcus, Dana
+### Topic 1: Database performance
+Marcus: A missing index is increasing latency.
+Priya: Decision — add the index this sprint. Marcus owns it, due Friday.
+```
+
+Unlabelled prose and rough-note bullets are retained without invented speakers. English is the primary extraction language; tested Thai support includes participant metadata, narrative names, assignments, bare day dates, explicit resolutions, unresolved discussions, and launch/freeze conflicts.
 
 ## Design Decisions
 
 - **Stack selection:** one TypeScript workspace gives shared types, fast local setup, strong tests, and mature DOCX/browser tooling without infrastructure.
 - **Frontend/backend separation:** upload and display remain in `frontend/`; file handling, extraction, and report generation remain in `backend/`; contracts remain in `shared/`.
-- **Parser strategy:** line-format normalization is independent of semantic extraction, so new transcript syntax can be added without changing the UI.
+- **Parser strategy:** line-format normalization is independent of semantic extraction. Typed normalized entries prevent dates, attendee labels, and Markdown headings from leaking into participant or semantic results.
 - **Deterministic extraction:** transparent keyword and phrase patterns provide offline reproducibility. No LLM or paid API is required.
-- **Topics and summaries:** configured subject vocabularies group only matching utterances; summaries describe the evidence instead of generating unsupported facts.
+- **Topics and summaries:** explicit Markdown topic headings create separate sections when present; otherwise configured subject vocabularies group evidence. Summaries describe retained evidence instead of generating unsupported facts.
 - **Decision recognition:** only explicit agreement/resolution phrases or unqualified collective commitments such as “we will launch” create decisions. Proposals, consideration language, and alternatives alone become no-decision warnings where applicable.
 - **Action recognition:** assignment, commitment, requirement, deadline, and targeted Thai patterns are used. Missing fields stay absent in the model and display as **Unassigned** or **Not specified**.
-- **Conflict detection:** competing dates around a common subject are flagged unless explicit decision evidence resolves the discussion.
+- **Conflict detection:** competing dates around a common subject are flagged unless explicit decision evidence resolves the discussion. Explicit unresolved language can retain a warning after a nominal decision when the transcript still shows a real contradiction.
 - **DOCX strategy:** the server creates OOXML in memory and returns it directly; no report data is persisted.
 - **Testing strategy:** semantics are verified below the HTTP layer, API behavior is integrated with Supertest, and only major user journeys use Playwright.
 
@@ -161,7 +172,9 @@ Unsupported extensions and oversized selections are rejected with user-facing fe
 
 ## CLAUDE.md Change Log
 
-`CLAUDE.md` was created after the implementation commands and directory responsibilities were known. No post-creation instruction changes were required.
+- Initial creation documented the implemented stack, commands, responsibilities, testing expectations, and deterministic extraction rules.
+- On 2026-08-25, the frontend stack and UI rules were updated to include Motion for React and reduced-motion requirements because the approved multi-meeting navigator introduced animated transitions.
+- On 2026-08-27, normalization rules were clarified to require typed speech/note/heading/metadata entries after instructor samples exposed metadata labels being misidentified as participants.
 
 ## Claude Skill
 
@@ -178,8 +191,8 @@ The workbook source of truth is `scripts/test-catalog.mjs`; `scripts/build_test_
 ## Known Limitations
 
 - Extraction is heuristic, not general natural-language understanding; unusual phrasing may be missed.
-- English has the broadest rule coverage. Thai support is intentionally limited to tested phrases.
-- Conflict detection focuses on unresolved date alternatives with shared launch/release context; it does not solve arbitrary logical contradictions.
+- English has the broadest rule coverage. Thai support is deterministic and limited to the documented, regression-tested participant, decision, action, date, and conflict patterns.
+- Conflict detection covers unresolved date alternatives with shared launch/release context and the tested freeze/dashboard contradiction; it does not solve arbitrary logical contradictions.
 - Topic categories use a fixed vocabulary. Unmatched content receives a general-discussion topic rather than a generated taxonomy.
 - Relative deadlines are retained as written and are not converted to calendar dates.
 - Files are processed in memory and not persisted. The API limits individual uploads and batch count to protect local resources.

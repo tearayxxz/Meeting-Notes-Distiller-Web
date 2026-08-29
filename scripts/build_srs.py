@@ -195,7 +195,7 @@ def build():
     document.add_heading("3. Scope", level=1)
     add_bullets(document, [
         "Accept up to 10 plain-text transcripts per request, each up to 1 MiB.",
-        "Normalize speaker-colon, timestamp-dash, timestamp-block, and unstructured text.",
+        "Normalize speaker-colon, timestamp-dash, timestamp-block, unstructured prose, and mixed Markdown/metadata notes.",
         "Extract participants, topics, topic summaries, explicit decisions, action items, owners, deadlines, and evidence.",
         "Flag unresolved options, conflicting dates, unassigned work, empty content, and parser warnings.",
         "Display per-meeting and combined results and generate a valid .docx report.",
@@ -225,12 +225,12 @@ def build():
         ("FR-01", "Accept one or more .txt files and allow later additions.", "Custom drag/drop and file input maintain an additive, deduplicated queue."),
         ("FR-02", "Require an explicit processing action.", "Analyze Meetings remains disabled until valid files exist and starts the request on click."),
         ("FR-03", "Reject unsupported, empty, invalid, oversized, or excessive uploads safely.", "A 10 MiB transport cap protects memory; per-file 1 MiB, UTF-8, empty, and type checks preserve valid peers."),
-        ("FR-04", "Support at least three transcript layouts.", "Speaker-colon, timestamp-dash, and timestamp-block normalization plus unstructured fallback."),
-        ("FR-05", "Extract unique participants from speaker information only.", "Participant module deduplicates normalized non-null speakers."),
-        ("FR-06", "Identify topics and separate concise summaries.", "Fixed evidence-bound subject categories group matching utterances; unmatched text is General discussion."),
+        ("FR-04", "Support at least three transcript layouts and mixed notes.", "Speaker-colon, timestamp-dash, timestamp-block, and unstructured normalization retain typed speech, note, heading, and metadata entries."),
+        ("FR-05", "Extract unique participants without treating labels as people.", "Participant module deduplicates actual speakers, named attendee/facilitator metadata, and narrowly tested narrative-name evidence."),
+        ("FR-06", "Identify topics and separate concise summaries.", "Explicit Markdown topic headings define sections; otherwise fixed evidence-bound subject categories group matching utterances."),
         ("FR-07", "Identify explicit final decisions and avoid promoting suggestions.", "Resolution phrases produce decisions with evidence; option language alone does not."),
         ("FR-08", "Extract action task, owner, deadline, and evidence without invention.", "Pattern modules return nullable owner/date; UI displays Unassigned and Not specified."),
-        ("FR-09", "Flag meetings with unresolved options or conflicting dates.", "No-decision and date-conflict flags require multiple alternatives and no explicit decision."),
+        ("FR-09", "Flag meetings with unresolved options or conflicting information.", "No-decision and date-conflict rules retain explicit unresolved evidence; tested Thai rules detect inconsistent launch and feature-freeze/dashboard timing."),
         ("FR-10", "Show clearly separate results for every successful meeting.", "Tabbed dashboard renders filename, participants, topics, decisions, actions, and warnings."),
         ("FR-11", "Group all actions by responsible person.", "Backend returns stable owner groups with Unassigned last; frontend renders owner cards."),
         ("FR-12", "Generate a valid combined Word report.", "POST /api/report validates the batch and returns OOXML .docx with all required sections."),
@@ -278,7 +278,7 @@ def build():
     run.font.name = "Consolas"
     run.font.size = Pt(9)
     document.add_paragraph(
-        "Normalization retains line numbers, timestamps, nullable speakers, and utterance text. Semantic modules consume only the normalized representation. Deterministic meeting IDs hash the filename and normalized content. The batch response includes successful meetings, named failures, grouped actions, and an ISO processing timestamp."
+        "Normalization retains line numbers, timestamps, nullable speakers, source text, and a speech/note/heading/metadata kind. Semantic modules consume only the normalized representation, preventing metadata labels and Markdown headings from becoming participants. Deterministic meeting IDs hash the filename and normalized content. The batch response includes successful meetings, named failures, grouped actions, and an ISO processing timestamp."
     )
 
     document.add_heading("11. Error Handling", level=1)
@@ -295,18 +295,18 @@ def build():
 
     document.add_heading("12. Testing Requirements", level=1)
     add_bullets(document, [
-        "Unit tests cover all three required formats, unstructured and empty input, duplicate participants, explicit/non-decisions, multiple actions, missing owners, Thai patterns, and conflicts.",
+        "Unit tests cover all three required formats, mixed Markdown/metadata notes, unstructured and empty input, duplicate participants, explicit/non-decisions, multiple actions, missing owners, Thai patterns, and conflicts.",
         "Shared-schema tests reject malformed structured output.",
         "Supertest verifies no-file errors, successful analysis, partial failure, empty-file isolation, health, invalid report requests, and readable DOCX output.",
         "Testing Library verifies empty state, unsupported files, additive upload, duplicate suppression, and explicit analysis.",
-        "Playwright verifies successful analysis, multiple upload rounds, grouped ownership, no-decision warning, unsupported extension, and report download.",
+        "Playwright verifies successful analysis, multiple upload rounds, grouped ownership, no-decision warning, unsupported extension, report download, and navigation across all four supplied English/Thai instructor samples.",
         "Artifact tests and a standalone verifier inspect required OOXML entries and representative document text.",
     ])
 
     document.add_heading("13. Assumptions", level=1)
     add_bullets(document, [
         "Input is valid UTF-8 plain text; invalid byte sequences are reported as a file-specific upload failure.",
-        "Speaker names appear in supported line headers when participant extraction is expected.",
+        "Participant names appear in supported speaker headers, named attendee/facilitator metadata, or a narrowly tested narrative-name phrase.",
         "Decision language explicitly signals agreement or resolution.",
         "Relative deadlines such as Friday are meaningful to the user and should remain as written.",
         "The local browser can download Blob responses and open Office Open XML files with a compatible application.",
@@ -331,13 +331,14 @@ def build():
         ("AC-06", "One failed file does not remove successful results.", "Covered by API partial-success tests."),
         ("AC-07", "Downloaded Word report is structurally valid and contains actual output.", "Covered by API, Playwright, and OOXML integrity checks."),
         ("AC-08", "Install, lint, tests, build, and E2E execute with documented commands.", "Verified during submission-readiness review."),
+        ("AC-09", "The four supplied English/Thai note files produce evidence-bound browser results.", "Covered by instructor fixture unit regressions and a four-file Playwright workflow."),
     ])
 
     document.add_heading("16. Known Limitations", level=1)
     add_bullets(document, [
         "Unusual phrasing can be missed because the engine is heuristic rather than a general language model.",
-        "English has the broadest coverage; Thai support is limited to tested owner, weekday, and decision patterns.",
-        "Conflict detection targets competing dates around shared release/launch concepts, not arbitrary contradictions.",
+        "English has the broadest coverage; Thai support is deterministic and limited to tested participant, owner, date, decision, action, and conflict phrases.",
+        "Conflict detection covers competing release/launch dates and the tested freeze/dashboard contradiction, not arbitrary logical contradictions.",
         "Topic names come from a fixed vocabulary; unmatched content is grouped as General discussion.",
         "Topic summaries are short evidence excerpts and may be less fluent than generated prose.",
         "The system does not perform diarization, OCR, audio transcription, user management, collaboration, or persistence.",

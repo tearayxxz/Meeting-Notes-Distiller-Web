@@ -54,8 +54,8 @@ describe('submission documents', () => {
     for (const reference of testSources) {
       expect(catalog).toContain(reference);
     }
-    expect(unitTestCases).toHaveLength(51);
-    expect(sitUatTestCases).toHaveLength(10);
+    expect(unitTestCases).toHaveLength(59);
+    expect(sitUatTestCases).toHaveLength(11);
     expect(new Set(unitTestCases.map(({ id }) => id)).size).toBe(unitTestCases.length);
     expect(new Set(sitUatTestCases.map(({ id }) => id)).size).toBe(sitUatTestCases.length);
   });
