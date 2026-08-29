@@ -1,5 +1,6 @@
 import type { FileFailure, MeetingAnalysis } from '@meeting-distiller/shared';
 import { AlertTriangle, ShieldCheck } from 'lucide-react';
+import { ProblemStatusBadge } from '@/components/ProblemStatusBadge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty';
 
@@ -23,9 +24,10 @@ export function ProblemPanel({ failures, meetings }: ProblemPanelProps) {
   return (
     <div className="flex flex-col gap-3" data-depth="calm" data-testid="problems-static-surface">
       {failures.map((failure) => (
-        <Alert key={`${failure.fileName}-${failure.code}`} className="problem-alert" data-problem-type="failure" data-stamp="PROCESSING ERROR" variant="destructive">
+        <Alert key={`${failure.fileName}-${failure.code}`} className="problem-alert" data-problem-type="failure" variant="destructive">
           <AlertTriangle aria-hidden="true" /><AlertTitle>{failure.fileName}</AlertTitle>
           <AlertDescription>{failure.message}</AlertDescription>
+          <ProblemStatusBadge type="failure" />
         </Alert>
       ))}
       {flags.map((flag, index) => (
@@ -33,12 +35,12 @@ export function ProblemPanel({ failures, meetings }: ProblemPanelProps) {
           key={`${flag.fileName}-${flag.type}-${index}`}
           className="problem-alert"
           data-problem-type={flag.type}
-          data-stamp={flag.type === 'conflict' ? 'CONFLICT' : flag.type === 'no-decision' ? 'UNRESOLVED' : flag.type === 'unassigned-action' ? 'UNCLAIMED' : 'NOTICE'}
           variant={flag.type === 'conflict' ? 'destructive' : 'warning'}
         >
           <AlertTriangle aria-hidden="true" />
           <AlertTitle>{flag.fileName} · {flag.type.replace(/-/gu, ' ')}</AlertTitle>
           <AlertDescription>{flag.message}</AlertDescription>
+          <ProblemStatusBadge type={flag.type} />
         </Alert>
       ))}
     </div>

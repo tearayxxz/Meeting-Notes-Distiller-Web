@@ -260,8 +260,36 @@ html[data-theme="web-slinger"] {
 }
 
 .problem-alert {
+  padding-right: 8.75rem;
   transform: translateZ(0);
   box-shadow: 0 8px 22px var(--depth-shadow-color);
+}
+
+.problem-status-badge {
+  position: absolute;
+  top: 0.625rem;
+  right: 0.625rem;
+  min-height: 1.5rem;
+  color: var(--warning-foreground);
+  background: color-mix(in oklch, var(--warning), transparent 78%);
+  border-color: color-mix(in oklch, var(--warning), transparent 35%);
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.065em;
+  pointer-events: none;
+}
+
+.problem-status-badge[data-problem-status="conflict"],
+.problem-status-badge[data-problem-status="failure"] {
+  color: white;
+  background: var(--destructive);
+  border-color: var(--destructive);
+}
+
+.problem-status-badge[data-problem-status="unassigned-action"] {
+  color: var(--primary-foreground);
+  background: var(--primary);
+  border-color: var(--primary);
 }
 
 .web-theme-background {
@@ -439,20 +467,17 @@ html[data-theme="web-slinger"] {
 .theme-web-slinger .problem-alert {
   position: relative;
   padding-top: 0.65rem;
-  padding-right: 8.75rem;
   padding-bottom: 0.65rem;
   border-width: 2px;
   border-color: var(--hero-ink);
   box-shadow: 4px 4px 0 rgb(11 24 52 / 13%);
 }
 
-.theme-web-slinger .problem-alert::before {
-  position: absolute;
-  pointer-events: none;
+.theme-web-slinger .problem-status-badge {
   top: 0.65rem;
   right: 0.75rem;
+  min-height: auto;
   padding: 0.18rem 0.55rem;
-  content: attr(data-stamp);
   font-size: 0.66rem;
   font-weight: 900;
   letter-spacing: 0.08em;
@@ -465,13 +490,13 @@ html[data-theme="web-slinger"] {
   animation: comic-pop 300ms cubic-bezier(0.2, 1.4, 0.4, 1) both;
 }
 
-.theme-web-slinger .problem-alert[data-problem-type="conflict"]::before,
-.theme-web-slinger .problem-alert[data-problem-type="failure"]::before {
+.theme-web-slinger .problem-status-badge[data-problem-status="conflict"],
+.theme-web-slinger .problem-status-badge[data-problem-status="failure"] {
   color: white;
   background: var(--hero-red);
 }
 
-.theme-web-slinger .problem-alert[data-problem-type="unassigned-action"]::before {
+.theme-web-slinger .problem-status-badge[data-problem-status="unassigned-action"] {
   color: white;
   background: var(--hero-blue);
 }
@@ -623,8 +648,8 @@ html[data-theme="web-slinger"] {
   .theme-web-slinger .meeting-navigator-panel {
     box-shadow: 3px 4px 0 rgb(11 24 52 / 13%);
   }
-  .theme-web-slinger .problem-alert { padding-top: 3.35rem; padding-right: 0.625rem; }
-  .theme-web-slinger .problem-alert::before { right: auto; left: 0.75rem; }
+  .problem-alert { padding-top: 3.35rem; padding-right: 0.625rem; }
+  .problem-status-badge { right: auto; left: 0.75rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {

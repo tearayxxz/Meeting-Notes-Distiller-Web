@@ -4,6 +4,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { ProblemStatusBadge } from '@/components/ProblemStatusBadge';
 
 interface MeetingCardProps {
   meeting: MeetingAnalysis;
@@ -43,7 +44,6 @@ export function MeetingCard({ meeting, index }: MeetingCardProps) {
                 key={`${flag.type}-${flagIndex}`}
                 className="problem-alert"
                 data-problem-type={flag.type}
-                data-stamp={flag.type === 'conflict' ? 'CONFLICT' : flag.type === 'no-decision' ? 'UNRESOLVED' : flag.type === 'unassigned-action' ? 'UNCLAIMED' : 'NOTICE'}
                 variant={flag.type === 'conflict' ? 'destructive' : 'warning'}
               >
                 <AlertTriangle aria-hidden="true" />
@@ -54,6 +54,7 @@ export function MeetingCard({ meeting, index }: MeetingCardProps) {
                     <span className="mt-1 block text-xs">Evidence: {flag.evidence.join(' · ')}</span>
                   ) : null}
                 </AlertDescription>
+                <ProblemStatusBadge type={flag.type} />
               </Alert>
             ))}
           </div>

@@ -187,6 +187,22 @@ test('keeps Web-Slinger warning content compact on desktop', async ({ page }) =>
   expect(alertBox.height).toBeLessThanOrEqual(80);
 });
 
+test('keeps problem status badges visible in Light and Dark themes', async ({ page }) => {
+  await page.setViewportSize({ width: 1169, height: 912 });
+  await page.goto('/');
+  await page.getByLabel('Choose transcript files').setInputFiles(fixture('instructor-04-thai-conflicting-launch.txt'));
+  await page.getByRole('button', { name: 'Analyze Meetings' }).click();
+  await page.getByRole('tab', { name: /Problems/ }).click();
+
+  const conflictStatus = page.getByLabel('Problem status: Conflict').first();
+  await expect(conflictStatus).toBeVisible();
+  await expect(conflictStatus).toHaveText('CONFLICT');
+
+  await page.getByRole('button', { name: 'Dark theme' }).click();
+  await expect(conflictStatus).toBeVisible();
+  await expect(conflictStatus).toHaveText('CONFLICT');
+});
+
 test('uploads and analyzes a transcript into structured meeting results', async ({ page }) => {
   await page.goto('/');
   await page.getByLabel('Choose transcript files').setInputFiles(fixture('format-a.txt'));
@@ -294,7 +310,7 @@ test('runs and clears both Light/Dark celestial directions', async ({ page }) =>
   await expect(page.getByTestId('celestial-transition')).toBeHidden({ timeout: 2_000 });
 });
 
-test('keeps Web-Slinger decorative pseudo-elements out of pointer interaction', async ({ page }) => {
+test('keeps Web-Slinger decorations and status labels out of pointer interaction', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Web-Slinger theme' }).click();
 
@@ -307,7 +323,7 @@ test('keeps Web-Slinger decorative pseudo-elements out of pointer interaction', 
 
   await page.getByRole('tab', { name: /Problems/ }).click();
   await expect(page.getByText(/No decision detected/).first()).toBeVisible();
-  expect(await page.locator('.problem-alert').first().evaluate((element) => getComputedStyle(element, '::before').pointerEvents)).toBe('none');
+  await expect(page.locator('.problem-status-badge').first()).toHaveCSS('pointer-events', 'none');
 });
 
 test('downloads a structurally recognizable Word report', async ({ page }) => {
