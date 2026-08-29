@@ -131,6 +131,15 @@ describe('Meeting Notes Distiller dashboard', () => {
     expect(screen.getByText('No transcripts selected')).toBeInTheDocument();
   });
 
+  it('groups the centered upload controls as one file-selection surface', () => {
+    render(<App />);
+
+    const selectionGroup = screen.getByRole('group', { name: 'Transcript file selection' });
+    expect(within(selectionGroup).getByText('Drop meeting transcripts here')).toBeInTheDocument();
+    expect(within(selectionGroup).getByText('.txt files up to 1 MB each')).toBeInTheDocument();
+    expect(within(selectionGroup).getByText('Browse files')).toBeInTheDocument();
+  });
+
   it('keeps information-heavy meeting and problem views stable', async () => {
     const user = userEvent.setup();
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify(batch), {
@@ -154,6 +163,31 @@ describe('Meeting Notes Distiller dashboard', () => {
     await user.click(screen.getByRole('tab', { name: /Problems/ }));
     expect(screen.getByTestId('problems-static-surface')).toHaveAttribute('data-depth', 'calm');
     expect(screen.queryByTestId('problems-tilt-surface')).not.toBeInTheDocument();
+  });
+
+  it('moves one shared highlight with the selected analysis result tab', async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify(batch), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    })));
+    render(<App />);
+
+    await user.upload(
+      screen.getByLabelText('Choose transcript files'),
+      new File(['Alice: We decided to launch Friday.'], 'launch.txt', { type: 'text/plain' }),
+    );
+    await user.click(screen.getByRole('button', { name: 'Analyze Meetings' }));
+
+    const meetingsTab = await screen.findByRole('tab', { name: /Meeting Results/ });
+    const problemsTab = screen.getByRole('tab', { name: /Problems/ });
+    expect(within(meetingsTab).getByTestId('analysis-tab-highlight')).toBeInTheDocument();
+    expect(screen.getAllByTestId('analysis-tab-highlight')).toHaveLength(1);
+
+    await user.click(problemsTab);
+    expect(within(problemsTab).getByTestId('analysis-tab-highlight')).toBeInTheDocument();
+    expect(within(meetingsTab).queryByTestId('analysis-tab-highlight')).not.toBeInTheDocument();
+    expect(screen.getAllByTestId('analysis-tab-highlight')).toHaveLength(1);
   });
 
   it('applies focused depth only to compact interactive surfaces', async () => {

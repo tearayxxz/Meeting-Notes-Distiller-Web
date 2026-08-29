@@ -77,6 +77,39 @@ test('fills the upload frame when the queued-file column grows', async ({ page }
   expect(Math.abs(surfaceBox.height - zoneBox.height)).toBeLessThanOrEqual(2);
 });
 
+test('centers the upload controls as one visual group', async ({ page }) => {
+  await page.setViewportSize({ width: 1169, height: 912 });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Web-Slinger theme' }).click();
+  await page.getByLabel('Choose transcript files').setInputFiles([
+    fixture('instructor-01-no-decisions-brainstorm.txt'),
+    fixture('instructor-02-structured-with-followups.txt'),
+    fixture('instructor-03-thai-no-decisions-roadmap.txt'),
+    fixture('instructor-04-thai-conflicting-launch.txt'),
+  ]);
+  await expect(page.getByText('Uploaded files (4)', { exact: true })).toBeVisible();
+
+  const [zoneBox, iconBox, copyBox, browseBox] = await Promise.all([
+    page.locator('.upload-zone').boundingBox(),
+    page.locator('.upload-zone [class~="size-14"]').boundingBox(),
+    page.getByText('Drop meeting transcripts here', { exact: true }).boundingBox(),
+    page.getByText('Browse files', { exact: true }).boundingBox(),
+  ]);
+  expect(zoneBox).not.toBeNull();
+  expect(iconBox).not.toBeNull();
+  expect(copyBox).not.toBeNull();
+  expect(browseBox).not.toBeNull();
+  if (!zoneBox || !iconBox || !copyBox || !browseBox) throw new Error('Upload controls did not render measurable boxes.');
+
+  const zoneCenterX = zoneBox.x + zoneBox.width / 2;
+  const horizontalOffsets = [iconBox, copyBox, browseBox]
+    .map((box) => Math.abs(box.x + box.width / 2 - zoneCenterX));
+  const visibleGroupCenterY = (iconBox.y + browseBox.y + browseBox.height) / 2;
+  const zoneCenterY = zoneBox.y + zoneBox.height / 2;
+  expect(Math.max(...horizontalOffsets)).toBeLessThanOrEqual(1);
+  expect(Math.abs(visibleGroupCenterY - zoneCenterY)).toBeLessThanOrEqual(2);
+});
+
 test('fits result view tabs across the analysis workspace', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto('/');
@@ -103,6 +136,55 @@ test('fits result view tabs across the analysis workspace', async ({ page }) => 
   expect(tabBoxes.every((box) => box.top >= tabListBox.y && box.bottom <= tabListBox.y + tabListBox.height)).toBe(true);
   expect(tabBoxes[1].left).toBeGreaterThanOrEqual(tabBoxes[0].right);
   expect(tabBoxes[2].left).toBeGreaterThanOrEqual(tabBoxes[1].right);
+});
+
+test('slides the active highlight between analysis result tabs', async ({ page }) => {
+  await page.setViewportSize({ width: 1169, height: 912 });
+  await page.goto('/');
+  await page.getByLabel('Choose transcript files').setInputFiles(fixture('format-a.txt'));
+  await page.getByRole('button', { name: 'Analyze Meetings' }).click();
+
+  const indicator = page.getByTestId('analysis-tab-highlight');
+  await expect(indicator).toHaveCount(1);
+  const startBox = await indicator.boundingBox();
+  expect(startBox).not.toBeNull();
+  if (!startBox) throw new Error('The initial analysis tab highlight is not measurable.');
+
+  const problemsTab = page.getByRole('tab', { name: /Problems/ });
+  await problemsTab.click();
+  await expect(problemsTab).toHaveAttribute('data-state', 'active');
+  const sampledPositions: number[] = [];
+  for (let sample = 0; sample < 6; sample += 1) {
+    const sampleBox = await indicator.boundingBox();
+    if (sampleBox) sampledPositions.push(sampleBox.x);
+    await page.waitForTimeout(35);
+  }
+  await page.waitForTimeout(350);
+  const finalBox = await indicator.boundingBox();
+  expect(finalBox).not.toBeNull();
+  if (!finalBox) throw new Error('The final analysis tab highlight is not measurable.');
+
+  expect(finalBox.x).toBeGreaterThan(startBox.x + 300);
+  expect(sampledPositions.some((position) => position > startBox.x + 5 && position < finalBox.x - 5)).toBe(true);
+});
+
+test('keeps Web-Slinger warning content compact on desktop', async ({ page }) => {
+  await page.setViewportSize({ width: 958, height: 912 });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Web-Slinger theme' }).click();
+  await page.getByLabel('Choose transcript files').setInputFiles(fixture('instructor-01-no-decisions-brainstorm.txt'));
+  await page.getByRole('button', { name: 'Analyze Meetings' }).click();
+  await page.getByRole('tab', { name: /Problems/ }).click();
+
+  const firstAlert = page.locator('[data-testid="problems-static-surface"] .problem-alert').first();
+  const title = firstAlert.locator('[data-slot="alert-title"]');
+  const [alertBox, titleBox] = await Promise.all([firstAlert.boundingBox(), title.boundingBox()]);
+  expect(alertBox).not.toBeNull();
+  expect(titleBox).not.toBeNull();
+  if (!alertBox || !titleBox) throw new Error('The first warning did not render measurable boxes.');
+
+  expect(titleBox.y - alertBox.y).toBeLessThanOrEqual(20);
+  expect(alertBox.height).toBeLessThanOrEqual(80);
 });
 
 test('uploads and analyzes a transcript into structured meeting results', async ({ page }) => {

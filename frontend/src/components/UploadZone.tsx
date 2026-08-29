@@ -28,26 +28,33 @@ export function UploadZone({ disabled, onFiles }: UploadZoneProps) {
   };
 
   return (
-    <TiltSurface data-testid="upload-tilt-surface" depth="strong" className="h-full" glare>
+    <TiltSurface
+      data-testid="upload-tilt-surface"
+      depth="strong"
+      className={cn(
+        'upload-zone web-theme-panel grid min-h-64 place-items-center overflow-hidden rounded-xl border border-dashed bg-card p-8 text-center shadow-xs transition-colors',
+        dragging && 'border-primary bg-primary/5',
+        disabled && 'opacity-60',
+      )}
+      data-dragging={dragging || undefined}
+      onDragEnter={(event) => {
+        event.preventDefault();
+        if (!disabled) setDragging(true);
+      }}
+      onDragLeave={() => setDragging(false)}
+      onDragOver={(event) => event.preventDefault()}
+      onDrop={handleDrop}
+      glare
+    >
       <div
-        className={cn(
-          'upload-zone web-theme-panel relative flex h-full min-h-64 flex-col items-center justify-center gap-4 overflow-hidden rounded-xl border border-dashed bg-card p-8 text-center shadow-xs transition-colors',
-          dragging && 'border-primary bg-primary/5',
-          disabled && 'opacity-60',
-        )}
-        data-dragging={dragging || undefined}
-        onDragEnter={(event) => {
-          event.preventDefault();
-          if (!disabled) setDragging(true);
-        }}
-        onDragLeave={() => setDragging(false)}
-        onDragOver={(event) => event.preventDefault()}
-        onDrop={handleDrop}
+        className="flex w-full flex-col items-center justify-center gap-4"
+        role="group"
+        aria-label="Transcript file selection"
       >
         <div className="flex size-14 items-center justify-center rounded-xl bg-primary/10 text-primary">
           <FileUp aria-hidden="true" />
         </div>
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col items-center gap-1">
           <p className="font-heading text-lg font-semibold">Drop meeting transcripts here</p>
           <p className="text-sm text-muted-foreground">.txt files up to 1 MB each</p>
         </div>
@@ -57,17 +64,17 @@ export function UploadZone({ disabled, onFiles }: UploadZoneProps) {
             Browse files
           </label>
         </Button>
-        <input
-          id="transcript-files"
-          className="sr-only"
-          type="file"
-          accept=".txt,text/plain"
-          multiple
-          disabled={disabled}
-          aria-label="Choose transcript files"
-          onChange={handleChange}
-        />
       </div>
+      <input
+        id="transcript-files"
+        className="sr-only"
+        type="file"
+        accept=".txt,text/plain"
+        multiple
+        disabled={disabled}
+        aria-label="Choose transcript files"
+        onChange={handleChange}
+      />
     </TiltSurface>
   );
 }

@@ -4,6 +4,7 @@ import {
   AlertTriangle, CheckCircle2, Download, FileCheck2, ListChecks,
   LoaderCircle, Play, Sparkles, UsersRound,
 } from 'lucide-react';
+import { LayoutGroup, motion, useReducedMotion } from 'motion/react';
 import { FileQueue, fileKey } from '@/components/FileQueue';
 import { CelestialTransition } from '@/components/CelestialTransition';
 import { GlobalActions } from '@/components/GlobalActions';
@@ -25,6 +26,20 @@ import { useTheme } from '@/lib/theme';
 
 const MAX_FILE_SIZE = 1024 * 1024;
 
+function AnalysisTabHighlight() {
+  const reduceMotion = useReducedMotion() ?? false;
+  return (
+    <motion.span
+      layoutId="analysis-tab-highlight"
+      data-testid="analysis-tab-highlight"
+      data-reduced-motion={reduceMotion ? 'true' : 'false'}
+      className="analysis-tab-highlight absolute inset-0 rounded-md"
+      transition={reduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 420, damping: 34 }}
+      aria-hidden="true"
+    />
+  );
+}
+
 export default function App() {
   const [files, setFiles] = useState<File[]>([]);
   const [analysis, setAnalysis] = useState<AnalysisBatch | null>(null);
@@ -32,6 +47,7 @@ export default function App() {
   const [processing, setProcessing] = useState(false);
   const [reporting, setReporting] = useState(false);
   const [selectedMeetingIndex, setSelectedMeetingIndex] = useState(0);
+  const [activeResultView, setActiveResultView] = useState('meetings');
   const [webEffectRun, setWebEffectRun] = useState(0);
   const [celestial, setCelestial] = useState<{
     runId: number;
@@ -164,20 +180,26 @@ export default function App() {
                 <AlertDescription>{analysis.meetings.length} of {analysis.meetings.length + analysis.failures.length} files processed successfully.</AlertDescription>
               </Alert>
 
-              <Tabs defaultValue="meetings" className="analysis-workspace web-theme-panel rounded-xl border bg-background p-4 sm:p-5">
-                <TabsList aria-label="Analysis result views" className="grid w-full grid-cols-1 gap-1.5 p-1.5 group-data-horizontal/tabs:h-auto sm:grid-cols-3">
-                  <TabsTrigger value="meetings" className="min-h-10 min-w-0 px-3 py-2 text-xs sm:text-sm">
-                    <FileCheck2 data-icon="inline-start" aria-hidden="true" />
-                    <span className="sm:hidden">Meetings</span><span className="hidden sm:inline">Meeting Results</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="actions" className="min-h-10 min-w-0 px-3 py-2 text-xs sm:text-sm">
-                    <UsersRound data-icon="inline-start" aria-hidden="true" />
-                    <span className="sm:hidden">Owners</span><span className="hidden sm:inline">Action Items by Owner</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="problems" className="min-h-10 min-w-0 px-3 py-2 text-xs sm:text-sm">
-                    <AlertTriangle data-icon="inline-start" aria-hidden="true" /> Problems ({problemCount})
-                  </TabsTrigger>
-                </TabsList>
+              <Tabs value={activeResultView} onValueChange={setActiveResultView} className="analysis-workspace web-theme-panel rounded-xl border bg-background p-4 sm:p-5">
+                <LayoutGroup id="analysis-result-tabs">
+                  <TabsList aria-label="Analysis result views" className="grid w-full grid-cols-1 gap-1.5 p-1.5 group-data-horizontal/tabs:h-auto sm:grid-cols-3">
+                    <TabsTrigger value="meetings" className="analysis-tab-trigger min-h-10 min-w-0 px-3 py-2 text-xs sm:text-sm">
+                      {activeResultView === 'meetings' ? <AnalysisTabHighlight /> : null}
+                      <FileCheck2 data-icon="inline-start" aria-hidden="true" />
+                      <span className="sm:hidden">Meetings</span><span className="hidden sm:inline">Meeting Results</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="actions" className="analysis-tab-trigger min-h-10 min-w-0 px-3 py-2 text-xs sm:text-sm">
+                      {activeResultView === 'actions' ? <AnalysisTabHighlight /> : null}
+                      <UsersRound data-icon="inline-start" aria-hidden="true" />
+                      <span className="sm:hidden">Owners</span><span className="hidden sm:inline">Action Items by Owner</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="problems" className="analysis-tab-trigger min-h-10 min-w-0 px-3 py-2 text-xs sm:text-sm">
+                      {activeResultView === 'problems' ? <AnalysisTabHighlight /> : null}
+                      <AlertTriangle data-icon="inline-start" aria-hidden="true" />
+                      <span>Problems ({problemCount})</span>
+                    </TabsTrigger>
+                  </TabsList>
+                </LayoutGroup>
                 <TabsContent value="meetings" className="mt-5">
                   <MeetingNavigator
                     meetings={analysis.meetings}
