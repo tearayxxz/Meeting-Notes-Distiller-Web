@@ -9,6 +9,8 @@ const datePatterns = [
   /\b\d{4}-\d{2}-\d{2}\b/u,
   /\b(?:today|tomorrow|tonight|next week|end of (?:the )?week|end of (?:the )?month)\b/iu,
   /วัน(?:จันทร์|อังคาร|พุธ|พฤหัสบดี|ศุกร์|เสาร์|อาทิตย์)/u,
+  /วันที่\s*\d{1,2}/u,
+  /สัปดาห์หน้า/u,
 ];
 
 const replaceUnsafeControls = (value: string): string =>
@@ -47,7 +49,7 @@ export const extractDate = (value: string): string | null => {
 
 export const extractAllDates = (value: string): string[] => {
   const combined = new RegExp(
-    String.raw`\bnext\s+(?:${englishWeekdays})\b|\b(?:${englishWeekdays})\b|\b(?:${englishMonths})\s+\d{1,2}(?:,\s*\d{4})?\b|\b\d{4}-\d{2}-\d{2}\b|\b(?:today|tomorrow|next week)\b|วัน(?:จันทร์|อังคาร|พุธ|พฤหัสบดี|ศุกร์|เสาร์|อาทิตย์)`,
+    String.raw`\bnext\s+(?:${englishWeekdays})\b|\b(?:${englishWeekdays})\b|\b(?:${englishMonths})\s+\d{1,2}(?:,\s*\d{4})?\b|\b\d{4}-\d{2}-\d{2}\b|\b(?:today|tomorrow|next week)\b|วัน(?:จันทร์|อังคาร|พุธ|พฤหัสบดี|ศุกร์|เสาร์|อาทิตย์)|วันที่\s*\d{1,2}|สัปดาห์หน้า`,
     'giu',
   );
   return [...value.matchAll(combined)].map(([date]) => date);
@@ -59,7 +61,7 @@ export const removeDeadline = (value: string, dueDate: string | null): string =>
     const escaped = dueDate.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
     task = task.replace(
       new RegExp(
-        String.raw`(?:\s+(?:(?:by|before|on|no later than)\s+)?${escaped}|ภายใน\s*${escaped})\s*$`,
+        String.raw`(?:\s+(?:(?:by|before|on|no later than|due)\s+)?${escaped}|ภายใน\s*${escaped})(?=\s+for\b|\s*$)|(?:,\s*)?due\s+${escaped}(?=\s|$)|ภายใน\s*${escaped}(?:\s*(?:นะคะ|ครับ|ค่ะ))?`,
         'iu',
       ),
       '',

@@ -9,11 +9,15 @@ export const transcriptFormatSchema = z.enum([
 
 export type TranscriptFormat = z.infer<typeof transcriptFormatSchema>;
 
+export const utteranceKindSchema = z.enum(['speech', 'note', 'heading', 'metadata']);
+export type UtteranceKind = z.infer<typeof utteranceKindSchema>;
+
 export const normalizedUtteranceSchema = z.object({
   speaker: z.string().min(1).nullable(),
   timestamp: z.string().min(1).nullable(),
   text: z.string().min(1),
   lineNumber: z.number().int().positive(),
+  kind: utteranceKindSchema,
 });
 
 export type NormalizedUtterance = z.infer<typeof normalizedUtteranceSchema>;

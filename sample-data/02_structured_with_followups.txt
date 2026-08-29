@@ -1,0 +1,33 @@
+Weekly Eng Sync — Week 11
+Date: 2026-03-23
+Facilitator: Priya
+Attendees: Priya, Marcus, Dana, Tomás
+
+## Follow-ups from last week (Week 10)
+
+* Auth migration: Dana confirmed the redirect flow shipped Wednesday as planned. DONE.
+* Legacy session cookies: dropped in 3.4 release as decided. Tomás confirmed changelog updated. DONE.
+
+## This week
+
+### Topic 1: Database performance
+
+Marcus: Query latency on the reports endpoint is spiking. I traced it to a missing index.
+Priya: Decision — add the index this sprint. Marcus owns it, due Friday.
+
+### Topic 2: On-call rotation
+
+Dana: The current rotation is uneven, Tomás has had three weekends in a row.
+Priya: Decision — we move to a fair round-robin starting next month. Dana will draft the new schedule and circulate by Thursday for feedback.
+
+### Topic 3: Incident postmortem
+
+Tomás: We still owe a postmortem for the March 18 outage.
+Priya: Right. Tomás, write the postmortem doc, due next Monday. Keep it blameless.
+
+## Parking lot (not decided)
+
+* Whether to adopt the new logging library — Marcus to research, no deadline set yet.
+* Budget for a load-testing tool — waiting on finance.
+
+Next sync: Week 12, same time.

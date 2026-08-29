@@ -1,0 +1,17 @@
+Product Brainstorm — Q3 Roadmap (rough notes)
+3/12/26
+
+ppl: whole product team + 2 from design
+
+* kicked off talking about whether to prioritize mobile or the API redesign
+* Sam thinks mobile, says that's where the growth is
+* Lena pushed back, enterprise customers keep asking for the API stuff
+* went back and forth on this for a while
+* someone (Raj?) brought up that we don't actually have data on mobile churn, should pull that first
+* agreed we need numbers but nobody committed to getting them??
+* talked about hiring a second mobile dev, no conclusion, depends on budget which finance hasn't confirmed
+* design showed some early mockups, looked nice, no feedback captured
+* ran out of time
+* "let's pick this up next week" — but didn't schedule anything
+
+honestly not sure what we decided here. felt like a lot of talking
