@@ -23,7 +23,7 @@ export function GlobalActions({ groups }: GlobalActionsProps) {
   return (
     <div className="grid gap-4 lg:grid-cols-2">
       {entries.map(([owner, actions]) => (
-        <Card key={owner} size="sm">
+        <Card key={owner} className="mission-board-card" size="sm">
           <CardHeader className="border-b">
             <CardTitle className="flex items-center gap-2"><CircleUserRound aria-hidden="true" /> {owner}</CardTitle>
             <CardDescription>{actions.length} action {actions.length === 1 ? 'item' : 'items'}</CardDescription>

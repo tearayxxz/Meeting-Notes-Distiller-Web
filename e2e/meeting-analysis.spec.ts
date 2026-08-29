@@ -65,6 +65,28 @@ test('rejects unsupported files before sending an analysis request', async ({ pa
   await expect(page.getByRole('button', { name: 'Analyze Meetings' })).toBeDisabled();
 });
 
+test('persists the Web-Slinger theme and replays its effect when analysis starts', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Web-Slinger theme' }).click();
+
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'web-slinger');
+  await expect(page.getByTestId('web-slinger-effect')).toHaveAttribute('data-run', '1');
+  await expect(page.getByTestId('web-slinger-effect')).toBeHidden({ timeout: 2_000 });
+
+  await page.getByRole('button', { name: 'Dark theme' }).click();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  await page.getByRole('button', { name: 'Web-Slinger theme' }).click();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'web-slinger');
+
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'web-slinger');
+  await page.getByLabel('Choose transcript files').setInputFiles(fixture('format-a.txt'));
+  await page.getByRole('button', { name: 'Analyze Meetings' }).click();
+
+  await expect(page.getByTestId('web-slinger-effect')).toHaveAttribute('data-run', '1');
+  await expect(page.getByRole('heading', { name: 'format-a.txt' })).toBeVisible();
+});
+
 test('downloads a structurally recognizable Word report', async ({ page }) => {
   await page.goto('/');
   await page.getByLabel('Choose transcript files').setInputFiles(fixture('decision.txt'));

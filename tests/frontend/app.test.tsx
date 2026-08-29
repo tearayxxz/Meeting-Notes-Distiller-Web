@@ -2,7 +2,7 @@
 
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import App from '../../frontend/src/App.js';
 
 const batch = {
@@ -89,8 +89,25 @@ const multiMeetingBatch = {
   ],
 };
 
+const storedValues = new Map<string, string>();
+const localStorageDouble: Storage = {
+  get length() { return storedValues.size; },
+  clear: () => storedValues.clear(),
+  getItem: (key) => storedValues.get(key) ?? null,
+  key: (index) => [...storedValues.keys()][index] ?? null,
+  removeItem: (key) => { storedValues.delete(key); },
+  setItem: (key, value) => { storedValues.set(key, value); },
+};
+
+beforeEach(() => {
+  Object.defineProperty(window, 'localStorage', { configurable: true, value: localStorageDouble });
+});
+
 afterEach(() => {
   cleanup();
+  window.localStorage.clear();
+  document.documentElement.classList.remove('dark');
+  document.documentElement.removeAttribute('data-theme');
   vi.unstubAllGlobals();
 });
 
@@ -102,6 +119,58 @@ describe('Meeting Notes Distiller dashboard', () => {
     expect(screen.getByText('Drop meeting transcripts here')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Analyze Meetings' })).toBeDisabled();
     expect(screen.getByText('No transcripts selected')).toBeInTheDocument();
+  });
+
+  it('switches named themes, persists the choice, and launches the Web-Slinger effect', async () => {
+    const user = userEvent.setup();
+    render(<App />);
+
+    expect(screen.getByRole('button', { name: 'Light theme' })).toHaveAttribute('aria-pressed', 'true');
+
+    await user.click(screen.getByRole('button', { name: 'Dark theme' }));
+    expect(document.documentElement).toHaveAttribute('data-theme', 'dark');
+    expect(document.documentElement).toHaveClass('dark');
+    expect(window.localStorage.getItem('meeting-distiller-theme')).toBe('dark');
+
+    await user.click(screen.getByRole('button', { name: 'Web-Slinger theme' }));
+    expect(document.documentElement).toHaveAttribute('data-theme', 'web-slinger');
+    expect(document.documentElement).not.toHaveClass('dark');
+    expect(window.localStorage.getItem('meeting-distiller-theme')).toBe('web-slinger');
+    expect(screen.getByTestId('web-slinger-effect')).toBeInTheDocument();
+  });
+
+  it('restores a valid saved theme and ignores an invalid saved value', () => {
+    window.localStorage.setItem('meeting-distiller-theme', 'web-slinger');
+    const { unmount } = render(<App />);
+
+    expect(screen.getByRole('button', { name: 'Web-Slinger theme' })).toHaveAttribute('aria-pressed', 'true');
+    expect(document.documentElement).toHaveAttribute('data-theme', 'web-slinger');
+
+    unmount();
+    window.localStorage.setItem('meeting-distiller-theme', 'unknown-theme');
+    render(<App />);
+
+    expect(screen.getByRole('button', { name: 'Light theme' })).toHaveAttribute('aria-pressed', 'true');
+    expect(document.documentElement).toHaveAttribute('data-theme', 'light');
+  });
+
+  it('starts analysis immediately while replaying the Web-Slinger effect', async () => {
+    const user = userEvent.setup();
+    const pendingRequest = new Promise<Response>(() => undefined);
+    const fetchStub = vi.fn(() => pendingRequest);
+    vi.stubGlobal('fetch', fetchStub);
+    render(<App />);
+
+    await user.click(screen.getByRole('button', { name: 'Web-Slinger theme' }));
+    const firstRun = screen.getByTestId('web-slinger-effect').getAttribute('data-run');
+    await user.upload(
+      screen.getByLabelText('Choose transcript files'),
+      new File(['Alice: We decided to launch Friday.'], 'launch.txt', { type: 'text/plain' }),
+    );
+    await user.click(screen.getByRole('button', { name: 'Analyze Meetings' }));
+
+    expect(fetchStub).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId('web-slinger-effect')).not.toHaveAttribute('data-run', firstRun);
   });
 
   it('rejects unsupported files before upload and shows useful feedback', async () => {

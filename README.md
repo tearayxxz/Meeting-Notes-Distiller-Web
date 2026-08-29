@@ -16,6 +16,7 @@ Meeting Notes Distiller Web is a local, deterministic web application that turns
 - A compact meeting navigator with `Meeting 1 of N`, progress, direct file selection, and one detailed meeting card at a time.
 - Valid downloadable Word report with all analyzed sections and grouped actions.
 - Responsive Tailwind/shadcn dashboard with reduced-motion-safe Motion transitions plus loading, empty, success, and error feedback.
+- Light, Dark, and original **Web-Slinger** appearance themes. The selected theme is remembered in `localStorage`; Web-Slinger adds a restrained one-shot web effect and comic-style warning stamps without delaying analysis.
 - Unit, schema, API, component, artifact-integrity, and Playwright E2E coverage.
 
 ## Tech Stack
@@ -115,9 +116,10 @@ npm run verify
 2. Drag transcript files into the upload area or use the file picker.
 3. Add more `.txt` files in later selection rounds if needed.
 4. Click **Analyze Meetings**.
-5. Review each meeting, decisions, action items, evidence, and warnings.
-6. Review global actions grouped by owner, including **Unassigned**.
-7. Click **Download Word Report** to save the combined analysis.
+5. Optionally choose Light, Dark, or Web-Slinger from the header; the browser remembers the selection on this device.
+6. Review each meeting, decisions, action items, evidence, and warnings.
+7. Review global actions grouped by owner, including **Unassigned**.
+8. Click **Download Word Report** to save the combined analysis.
 
 ## Supported Transcript Formats
 

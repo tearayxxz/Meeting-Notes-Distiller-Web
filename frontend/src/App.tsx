@@ -8,13 +8,17 @@ import { FileQueue, fileKey } from '@/components/FileQueue';
 import { GlobalActions } from '@/components/GlobalActions';
 import { MeetingNavigator } from '@/components/MeetingNavigator';
 import { ProblemPanel } from '@/components/ProblemPanel';
+import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 import { UploadZone } from '@/components/UploadZone';
+import { WebSlingerEffect, WebThemeBackground } from '@/components/WebSlingerEffects';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { analyzeMeetings, createWordReport } from '@/lib/api';
+import type { Theme } from '@/lib/theme';
+import { useTheme } from '@/lib/theme';
 
 const MAX_FILE_SIZE = 1024 * 1024;
 
@@ -25,6 +29,8 @@ export default function App() {
   const [processing, setProcessing] = useState(false);
   const [reporting, setReporting] = useState(false);
   const [selectedMeetingIndex, setSelectedMeetingIndex] = useState(0);
+  const [webEffectRun, setWebEffectRun] = useState(0);
+  const { theme, setTheme } = useTheme();
 
   const problemCount = useMemo(
     () => (analysis?.failures.length ?? 0) +
@@ -50,6 +56,7 @@ export default function App() {
 
   const analyze = async (): Promise<void> => {
     if (files.length === 0) return;
+    if (theme === 'web-slinger') setWebEffectRun((run) => run + 1);
     setProcessing(true);
     setError(null);
     try {
@@ -58,6 +65,11 @@ export default function App() {
     }
     catch (cause) { setError(cause instanceof Error ? cause.message : 'Meeting analysis failed.'); }
     finally { setProcessing(false); }
+  };
+
+  const changeTheme = (nextTheme: Theme): void => {
+    setTheme(nextTheme);
+    if (nextTheme === 'web-slinger') setWebEffectRun((run) => run + 1);
   };
 
   const downloadReport = async (): Promise<void> => {
@@ -81,26 +93,31 @@ export default function App() {
 
   return (
     <TooltipProvider>
-      <div className="min-h-screen bg-muted/35 text-foreground">
-        <header className="border-b bg-background">
-          <div className="mx-auto flex max-w-[1440px] items-center gap-3 px-5 py-5 sm:px-8">
-            <div className="flex size-11 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
-              <Sparkles aria-hidden="true" />
+      <div className={`app-shell min-h-screen bg-muted/35 text-foreground theme-${theme}`}>
+        {theme === 'web-slinger' ? <WebThemeBackground /> : null}
+        {theme === 'web-slinger' ? <WebSlingerEffect runId={webEffectRun} /> : null}
+        <header className="app-header relative z-10 border-b bg-background">
+          <div className="mx-auto flex max-w-[1440px] flex-col gap-4 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-8">
+            <div className="flex items-center gap-3">
+              <div className="app-logo flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
+                <Sparkles aria-hidden="true" />
+              </div>
+              <div>
+                <h1 className="font-heading text-2xl font-bold tracking-tight sm:text-[2.1rem]">Meeting Notes Distiller</h1>
+                <p className="app-subtitle text-sm text-muted-foreground">Turn raw transcripts into decisions and action.</p>
+              </div>
             </div>
-            <div>
-              <h1 className="font-heading text-2xl font-bold tracking-tight sm:text-[2.1rem]">Meeting Notes Distiller</h1>
-              <p className="text-sm text-muted-foreground">Turn raw transcripts into decisions and action.</p>
-            </div>
+            <ThemeSwitcher theme={theme} onChange={changeTheme} />
           </div>
         </header>
 
-        <main className="mx-auto flex max-w-[1440px] flex-col gap-5 px-5 py-6 sm:px-8 sm:py-8">
-          <section aria-label="Transcript upload" className="grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
+        <main className="relative z-1 mx-auto flex max-w-[1440px] flex-col gap-5 px-5 py-6 sm:px-8 sm:py-8">
+          <section aria-label="Transcript upload" className="upload-workspace grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
             <UploadZone disabled={processing} onFiles={addFiles} />
             <div className="flex flex-col gap-3">
               <FileQueue disabled={processing} files={files}
                 onRemove={(key) => setFiles((current) => current.filter((file) => fileKey(file) !== key))} />
-              <Button className="w-full" size="lg" disabled={processing || files.length === 0} onClick={() => void analyze()}>
+              <Button className="analyze-button w-full" size="lg" disabled={processing || files.length === 0} onClick={() => void analyze()}>
                 {processing ? <LoaderCircle className="animate-spin" data-icon="inline-start" aria-hidden="true" />
                   : <Play data-icon="inline-start" aria-hidden="true" />}
                 Analyze Meetings
@@ -109,7 +126,7 @@ export default function App() {
           </section>
 
           {processing ? (
-            <div className="flex flex-col gap-2" aria-live="polite">
+            <div className="web-loading flex flex-col gap-2" aria-live="polite">
               <div className="flex items-center justify-between text-sm">
                 <span className="font-medium">Analyzing {files.length} transcript{files.length === 1 ? '' : 's'}…</span>
                 <span className="text-muted-foreground">Extracting structured results</span>
@@ -132,7 +149,7 @@ export default function App() {
                 <AlertDescription>{analysis.meetings.length} of {analysis.meetings.length + analysis.failures.length} files processed successfully.</AlertDescription>
               </Alert>
 
-              <Tabs defaultValue="meetings" className="rounded-xl border bg-background p-4 sm:p-5">
+              <Tabs defaultValue="meetings" className="analysis-workspace web-theme-panel rounded-xl border bg-background p-4 sm:p-5">
                 <TabsList variant="line" aria-label="Analysis result views" className="grid h-auto w-full grid-cols-3 gap-1 sm:inline-flex sm:h-8 sm:w-fit sm:justify-start">
                   <TabsTrigger value="meetings" className="min-w-0 py-2 text-xs sm:py-0.5 sm:text-sm">
                     <FileCheck2 data-icon="inline-start" aria-hidden="true" />
@@ -157,8 +174,8 @@ export default function App() {
                 <TabsContent value="problems" className="mt-5"><ProblemPanel failures={analysis.failures} meetings={analysis.meetings} /></TabsContent>
               </Tabs>
 
-              <div className="flex justify-center rounded-xl border bg-background p-4">
-                <Button variant="outline" size="lg" disabled={reporting} onClick={() => void downloadReport()}>
+              <div className="report-panel web-theme-panel flex justify-center rounded-xl border bg-background p-4">
+                <Button className="report-button" variant="outline" size="lg" disabled={reporting} onClick={() => void downloadReport()}>
                   {reporting ? <LoaderCircle className="animate-spin" data-icon="inline-start" aria-hidden="true" />
                     : <Download data-icon="inline-start" aria-hidden="true" />}
                   Download Word Report
@@ -166,7 +183,7 @@ export default function App() {
               </div>
             </>
           ) : (
-            <section className="rounded-xl border border-dashed bg-background p-7 text-center">
+            <section className="empty-results web-theme-panel rounded-xl border border-dashed bg-background p-7 text-center">
               <ListChecks className="mx-auto mb-3 text-muted-foreground" aria-hidden="true" />
               <h2 className="font-heading text-lg font-semibold">Results will appear here</h2>
               <p className="mt-1 text-sm text-muted-foreground">Select transcript files, then choose Analyze Meetings.</p>

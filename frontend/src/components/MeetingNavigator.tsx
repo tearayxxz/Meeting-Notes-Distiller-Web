@@ -31,7 +31,7 @@ export function MeetingNavigator({ meetings, selectedIndex, onSelect }: MeetingN
   return (
     <LazyMotion features={domAnimation} strict>
       <div className="flex flex-col gap-5">
-        <section aria-label="Meeting navigator" className="flex flex-col gap-4 rounded-xl border bg-muted/25 p-4 sm:p-5">
+        <section aria-label="Meeting navigator" className="meeting-navigator-panel flex flex-col gap-4 rounded-xl border bg-muted/25 p-4 sm:p-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="min-w-0">
               <p className="font-heading text-lg font-semibold">Meeting {selectedIndex + 1} of {meetings.length}</p>
@@ -83,7 +83,7 @@ export function MeetingNavigator({ meetings, selectedIndex, onSelect }: MeetingN
                 aria-label={`Open meeting ${index + 1}: ${meeting.fileName}`}
                 aria-current={selected ? 'step' : undefined}
                 className={cn(
-                  'relative min-w-56 flex-1 overflow-hidden rounded-xl border bg-background p-4 text-left shadow-xs outline-none transition-colors',
+                  'meeting-selector relative min-w-56 flex-1 overflow-hidden rounded-xl border bg-background p-4 text-left shadow-xs outline-none transition-colors',
                   'focus-visible:ring-3 focus-visible:ring-ring/50',
                   selected ? 'border-primary/50' : 'hover:border-primary/30 hover:bg-primary/[0.025]',
                 )}

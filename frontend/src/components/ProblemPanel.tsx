@@ -21,13 +21,19 @@ export function ProblemPanel({ failures, meetings }: ProblemPanelProps) {
   return (
     <div className="flex flex-col gap-3">
       {failures.map((failure) => (
-        <Alert key={`${failure.fileName}-${failure.code}`} variant="destructive">
+        <Alert key={`${failure.fileName}-${failure.code}`} className="problem-alert" data-problem-type="failure" data-stamp="PROCESSING ERROR" variant="destructive">
           <AlertTriangle aria-hidden="true" /><AlertTitle>{failure.fileName}</AlertTitle>
           <AlertDescription>{failure.message}</AlertDescription>
         </Alert>
       ))}
       {flags.map((flag, index) => (
-        <Alert key={`${flag.fileName}-${flag.type}-${index}`} variant={flag.type === 'conflict' ? 'destructive' : 'warning'}>
+        <Alert
+          key={`${flag.fileName}-${flag.type}-${index}`}
+          className="problem-alert"
+          data-problem-type={flag.type}
+          data-stamp={flag.type === 'conflict' ? 'CONFLICT' : flag.type === 'no-decision' ? 'UNRESOLVED' : flag.type === 'unassigned-action' ? 'UNCLAIMED' : 'NOTICE'}
+          variant={flag.type === 'conflict' ? 'destructive' : 'warning'}
+        >
           <AlertTriangle aria-hidden="true" />
           <AlertTitle>{flag.fileName} · {flag.type.replace(/-/gu, ' ')}</AlertTitle>
           <AlertDescription>{flag.message}</AlertDescription>

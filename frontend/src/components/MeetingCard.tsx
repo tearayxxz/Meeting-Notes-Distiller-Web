@@ -12,7 +12,7 @@ interface MeetingCardProps {
 
 export function MeetingCard({ meeting, index }: MeetingCardProps) {
   return (
-    <Card>
+    <Card className="meeting-result-card web-theme-panel">
       <CardHeader className="border-b">
         <div className="text-xs font-medium uppercase tracking-wide text-primary">Meeting {index + 1}</div>
         <CardTitle><h2>{meeting.fileName}</h2></CardTitle>
@@ -35,7 +35,13 @@ export function MeetingCard({ meeting, index }: MeetingCardProps) {
         {meeting.flags.length > 0 ? (
           <div className="flex flex-col gap-2">
             {meeting.flags.map((flag, flagIndex) => (
-              <Alert key={`${flag.type}-${flagIndex}`} variant={flag.type === 'conflict' ? 'destructive' : 'warning'}>
+              <Alert
+                key={`${flag.type}-${flagIndex}`}
+                className="problem-alert"
+                data-problem-type={flag.type}
+                data-stamp={flag.type === 'conflict' ? 'CONFLICT' : flag.type === 'no-decision' ? 'UNRESOLVED' : flag.type === 'unassigned-action' ? 'UNCLAIMED' : 'NOTICE'}
+                variant={flag.type === 'conflict' ? 'destructive' : 'warning'}
+              >
                 <AlertTriangle aria-hidden="true" />
                 <AlertTitle>{flag.type === 'no-decision' ? 'No decision' : flag.type.replace(/-/gu, ' ')}</AlertTitle>
                 <AlertDescription>
@@ -57,7 +63,7 @@ export function MeetingCard({ meeting, index }: MeetingCardProps) {
           {meeting.topics.length === 0 ? (
             <p className="text-sm text-muted-foreground">No topics could be extracted.</p>
           ) : meeting.topics.map((topic) => (
-            <div key={topic.name} className="flex flex-col gap-2 rounded-lg bg-muted/55 p-4">
+            <div key={topic.name} className="topic-panel flex flex-col gap-2 rounded-lg bg-muted/55 p-4">
               <h4 className="font-heading font-semibold">{topic.name}</h4>
               <p className="text-sm leading-relaxed text-muted-foreground">{topic.summary}</p>
               <div className="flex items-start gap-2 text-sm">
@@ -90,7 +96,7 @@ export function MeetingCard({ meeting, index }: MeetingCardProps) {
           ) : (
             <div className="flex flex-col gap-3">
               {meeting.actionItems.map((action, actionIndex) => (
-                <div key={`${action.task}-${actionIndex}`} className="grid gap-3 rounded-lg border p-4 md:grid-cols-[1fr_auto]">
+                <div key={`${action.task}-${actionIndex}`} className="action-mission grid gap-3 rounded-lg border p-4 md:grid-cols-[1fr_auto]">
                   <div className="flex flex-col gap-1">
                     <p className="font-medium">{action.task}</p>
                     <p className="text-xs leading-relaxed text-muted-foreground">Evidence: {action.evidence}</p>

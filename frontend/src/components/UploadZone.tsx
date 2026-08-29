@@ -29,10 +29,11 @@ export function UploadZone({ disabled, onFiles }: UploadZoneProps) {
   return (
     <div
       className={cn(
-        'flex min-h-64 flex-col items-center justify-center gap-4 rounded-xl border border-dashed bg-card p-8 text-center shadow-xs transition-colors',
+        'upload-zone web-theme-panel relative flex min-h-64 flex-col items-center justify-center gap-4 overflow-hidden rounded-xl border border-dashed bg-card p-8 text-center shadow-xs transition-colors',
         dragging && 'border-primary bg-primary/5',
         disabled && 'opacity-60',
       )}
+      data-dragging={dragging || undefined}
       onDragEnter={(event) => {
         event.preventDefault();
         if (!disabled) setDragging(true);
