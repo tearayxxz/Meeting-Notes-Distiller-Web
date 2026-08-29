@@ -379,7 +379,7 @@ html[data-theme="web-slinger"] {
   box-shadow: 2px 2px 0 var(--hero-ink);
 }
 
-.theme-web-slinger .meeting-selector[aria-current="true"] {
+.theme-web-slinger .meeting-selector[aria-current="step"] {
   color: white;
   background: var(--hero-blue);
   border-color: var(--hero-ink);

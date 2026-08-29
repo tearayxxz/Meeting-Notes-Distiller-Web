@@ -6,12 +6,24 @@ import type * as Motion from 'motion/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { TiltSurface } from '../../frontend/src/components/TiltSurface.js';
 
-const motionState = vi.hoisted(() => ({ reduced: false }));
+const motionState = vi.hoisted(() => ({ reduced: false, valueSets: [] as number[] }));
 const depthState = vi.hoisted(() => ({ maxRotations: [] as number[] }));
 
 vi.mock('motion/react', async () => {
   const actual = await vi.importActual<typeof Motion>('motion/react');
-  return { ...actual, useReducedMotion: () => motionState.reduced };
+  return {
+    ...actual,
+    useReducedMotion: () => motionState.reduced,
+    useMotionValue: (initial: number) => {
+      const value = actual.useMotionValue(initial);
+      const set = value.set.bind(value);
+      value.set = (next: number) => {
+        motionState.valueSets.push(next);
+        set(next);
+      };
+      return value;
+    },
+  };
 });
 
 vi.mock('@/lib/depth', async () => {
@@ -47,6 +59,7 @@ const installMatchMedia = (hoverCapable: boolean, finePointer: boolean): void =>
 afterEach(() => {
   cleanup();
   motionState.reduced = false;
+  motionState.valueSets = [];
   depthState.maxRotations = [];
   vi.unstubAllGlobals();
 });
@@ -91,6 +104,65 @@ describe('TiltSurface', () => {
     installMatchMedia(true, false);
     render(<TiltSurface data-testid="surface">Content</TiltSurface>);
     expect(screen.getByTestId('surface')).toHaveAttribute('data-tilt-enabled', 'false');
+  });
+
+  it('keeps mouse tilt and gives touch press/lift feedback on hybrid fine pointers', () => {
+    installMatchMedia(true, true);
+    render(<TiltSurface data-testid="surface">Content</TiltSurface>);
+    const surface = screen.getByTestId('surface');
+    vi.spyOn(surface, 'getBoundingClientRect').mockReturnValue({
+      left: 0, top: 0, width: 200, height: 100, right: 200, bottom: 100,
+      x: 0, y: 0, toJSON: () => ({}),
+    });
+
+    fireEvent.pointerEnter(surface, { pointerType: 'mouse', clientX: 100, clientY: 50 });
+    fireEvent.pointerMove(surface, { pointerType: 'mouse', clientX: 190, clientY: 10 });
+    expect(depthState.maxRotations).toEqual([4]);
+
+    const beforeTouch = motionState.valueSets.length;
+    fireEvent.pointerDown(surface, { pointerType: 'touch' });
+    expect(motionState.valueSets.slice(beforeTouch)).toContain(-2);
+    fireEvent.pointerUp(surface, { pointerType: 'touch' });
+    expect(motionState.valueSets.slice(beforeTouch)).toContain(0);
+  });
+
+  it('resets active tilt when the window loses focus', () => {
+    installMatchMedia(true, true);
+    render(<TiltSurface data-testid="surface">Content</TiltSurface>);
+    const surface = screen.getByTestId('surface');
+    vi.spyOn(surface, 'getBoundingClientRect').mockReturnValue({
+      left: 0, top: 0, width: 200, height: 100, right: 200, bottom: 100,
+      x: 0, y: 0, toJSON: () => ({}),
+    });
+
+    fireEvent.pointerEnter(surface, { pointerType: 'mouse', clientX: 100, clientY: 50 });
+    fireEvent.blur(window);
+    expect(surface).toHaveAttribute('data-tilt-active', 'false');
+  });
+
+  it('resets touch lift when the window loses focus', () => {
+    installMatchMedia(true, true);
+    render(<TiltSurface data-testid="surface">Content</TiltSurface>);
+    const surface = screen.getByTestId('surface');
+
+    fireEvent.pointerDown(surface, { pointerType: 'touch' });
+    const beforeBlur = motionState.valueSets.length;
+    fireEvent.blur(window);
+    expect(motionState.valueSets.slice(beforeBlur)).toContain(0);
+  });
+
+  it('resets active tilt when pointer capture is lost', () => {
+    installMatchMedia(true, true);
+    render(<TiltSurface data-testid="surface">Content</TiltSurface>);
+    const surface = screen.getByTestId('surface');
+    vi.spyOn(surface, 'getBoundingClientRect').mockReturnValue({
+      left: 0, top: 0, width: 200, height: 100, right: 200, bottom: 100,
+      x: 0, y: 0, toJSON: () => ({}),
+    });
+
+    fireEvent.pointerEnter(surface, { pointerType: 'mouse', clientX: 100, clientY: 50 });
+    fireEvent.lostPointerCapture(surface, { pointerType: 'mouse' });
+    expect(surface).toHaveAttribute('data-tilt-active', 'false');
   });
 
   it('bounds CSS rotation between zero and six before calculating tilt', () => {

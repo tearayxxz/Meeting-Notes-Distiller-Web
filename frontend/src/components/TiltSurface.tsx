@@ -1,4 +1,4 @@
-import { useRef, type ComponentPropsWithoutRef, type PointerEvent, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, type ComponentPropsWithoutRef, type PointerEvent, type ReactNode } from 'react';
 import {
   motion, useMotionTemplate, useMotionValue, useReducedMotion, useSpring, useTransform,
 } from 'motion/react';
@@ -18,13 +18,14 @@ interface TiltSurfaceProps extends Omit<ComponentPropsWithoutRef<typeof motion.d
 export function TiltSurface({
   children, className, depth = 'strong', glare = true, style,
   onPointerEnter, onPointerMove, onPointerLeave, onPointerCancel,
-  onPointerDown, onPointerUp, ...props
+  onPointerDown, onPointerUp, onLostPointerCapture, ...props
 }: TiltSurfaceProps) {
   const reduceMotion = useReducedMotion() ?? false;
   const finePointer = typeof window !== 'undefined' &&
     window.matchMedia('(hover: hover) and (pointer: fine)').matches;
   const trackingEnabled = finePointer && !reduceMotion;
   const bounds = useRef<TiltBounds | null>(null);
+  const activeSurface = useRef<HTMLDivElement | null>(null);
   const maxRotation = useRef(4);
   const rawRotateX = useMotionValue(0);
   const rawRotateY = useMotionValue(0);
@@ -41,7 +42,7 @@ export function TiltSurface({
   const glareY = useTransform(normalizedY, [-1, 1], [20, 80]);
   const glareBackground = useMotionTemplate`radial-gradient(circle at ${glareX}% ${glareY}%, var(--depth-glare-color), transparent 42%)`;
 
-  const reset = (element: HTMLDivElement): void => {
+  const reset = useCallback((element: HTMLDivElement): void => {
     bounds.current = null;
     rawRotateX.set(0);
     rawRotateY.set(0);
@@ -49,7 +50,16 @@ export function TiltSurface({
     normalizedX.set(0);
     normalizedY.set(0);
     element.dataset.tiltActive = 'false';
-  };
+    if (activeSurface.current === element) activeSurface.current = null;
+  }, [normalizedX, normalizedY, rawLift, rawRotateX, rawRotateY]);
+
+  useEffect(() => {
+    const resetOnWindowBlur = (): void => {
+      if (activeSurface.current) reset(activeSurface.current);
+    };
+    window.addEventListener('blur', resetOnWindowBlur);
+    return () => window.removeEventListener('blur', resetOnWindowBlur);
+  }, [reset]);
 
   const enter = (event: PointerEvent<HTMLDivElement>): void => {
     if (trackingEnabled && event.pointerType !== 'touch') {
@@ -59,6 +69,7 @@ export function TiltSurface({
       maxRotation.current = Math.max(0, Math.min(6, Number.isNaN(parsedRotation) ? 4 : parsedRotation));
       rawLift.set(-4);
       event.currentTarget.dataset.tiltActive = 'true';
+      activeSurface.current = event.currentTarget;
     }
     onPointerEnter?.(event);
   };
@@ -86,8 +97,21 @@ export function TiltSurface({
       onPointerMove={move}
       onPointerLeave={(event) => { reset(event.currentTarget); onPointerLeave?.(event); }}
       onPointerCancel={(event) => { reset(event.currentTarget); onPointerCancel?.(event); }}
-      onPointerDown={(event) => { if (!reduceMotion && !trackingEnabled) rawLift.set(-2); onPointerDown?.(event); }}
-      onPointerUp={(event) => { if (!trackingEnabled) rawLift.set(0); onPointerUp?.(event); }}
+      onLostPointerCapture={(event) => { reset(event.currentTarget); onLostPointerCapture?.(event); }}
+      onPointerDown={(event) => {
+        if (!reduceMotion && event.pointerType === 'touch') {
+          rawLift.set(-2);
+          activeSurface.current = event.currentTarget;
+        }
+        onPointerDown?.(event);
+      }}
+      onPointerUp={(event) => {
+        if (!reduceMotion && event.pointerType === 'touch') {
+          rawLift.set(0);
+          if (activeSurface.current === event.currentTarget) activeSurface.current = null;
+        }
+        onPointerUp?.(event);
+      }}
     >
       {children}
       {glare ? <motion.span className="tilt-glare" aria-hidden="true" style={{ background: glareBackground, pointerEvents: 'none' }} /> : null}

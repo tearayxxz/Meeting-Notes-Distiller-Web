@@ -133,6 +133,19 @@ test('persists the Web-Slinger theme and replays its effect when analysis starts
   await expect(page.getByRole('heading', { name: 'format-a.txt' })).toBeVisible();
 });
 
+test('styles the selected Web-Slinger meeting selector emitted as the current step', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Web-Slinger theme' }).click();
+  await page.getByLabel('Choose transcript files').setInputFiles([fixture('format-a.txt'), fixture('missing-owner.txt')]);
+  await page.getByRole('button', { name: 'Analyze Meetings' }).click();
+
+  const selected = page.getByRole('button', { name: 'Open meeting 1: format-a.txt' });
+  await expect(selected).toHaveAttribute('aria-current', 'step');
+  const selectedBackground = await selected.evaluate((element) => getComputedStyle(element).backgroundColor);
+  const heroBlue = await selected.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--hero-blue').trim());
+  expect(selectedBackground).toBe(heroBlue);
+});
+
 test('runs and clears both Light/Dark celestial directions', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Dark theme' }).click();
