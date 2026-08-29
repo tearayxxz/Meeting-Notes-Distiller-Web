@@ -1,0 +1,95 @@
+import { useRef, type ComponentPropsWithoutRef, type PointerEvent, type ReactNode } from 'react';
+import {
+  motion, useMotionTemplate, useMotionValue, useReducedMotion, useSpring, useTransform,
+} from 'motion/react';
+import type { MotionStyle } from 'motion/react';
+import { calculateTilt, type TiltBounds } from '@/lib/depth';
+import { cn } from '@/lib/utils';
+
+export type DepthStrength = 'calm' | 'strong';
+
+interface TiltSurfaceProps extends Omit<ComponentPropsWithoutRef<typeof motion.div>, 'children' | 'style'> {
+  children?: ReactNode;
+  depth?: DepthStrength;
+  glare?: boolean;
+  style?: MotionStyle;
+}
+
+export function TiltSurface({
+  children, className, depth = 'strong', glare = true, style,
+  onPointerEnter, onPointerMove, onPointerLeave, onPointerCancel,
+  onPointerDown, onPointerUp, ...props
+}: TiltSurfaceProps) {
+  const reduceMotion = useReducedMotion() ?? false;
+  const finePointer = typeof window !== 'undefined' &&
+    window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  const trackingEnabled = finePointer && !reduceMotion;
+  const bounds = useRef<TiltBounds | null>(null);
+  const maxRotation = useRef(4);
+  const rawRotateX = useMotionValue(0);
+  const rawRotateY = useMotionValue(0);
+  const rawLift = useMotionValue(0);
+  const normalizedX = useMotionValue(0);
+  const normalizedY = useMotionValue(0);
+  const rotateX = useSpring(rawRotateX, { stiffness: 260, damping: 28 });
+  const rotateY = useSpring(rawRotateY, { stiffness: 260, damping: 28 });
+  const y = useSpring(rawLift, { stiffness: 300, damping: 30 });
+  const shadowX = useTransform(rotateY, (value) => value * 1.15);
+  const shadowY = useTransform(rotateX, (value) => 14 - value * 0.45);
+  const boxShadow = useMotionTemplate`${shadowX}px ${shadowY}px 26px var(--depth-shadow-color)`;
+  const glareX = useTransform(normalizedX, [-1, 1], [20, 80]);
+  const glareY = useTransform(normalizedY, [-1, 1], [20, 80]);
+  const glareBackground = useMotionTemplate`radial-gradient(circle at ${glareX}% ${glareY}%, var(--depth-glare-color), transparent 42%)`;
+
+  const reset = (element: HTMLDivElement): void => {
+    bounds.current = null;
+    rawRotateX.set(0);
+    rawRotateY.set(0);
+    rawLift.set(0);
+    normalizedX.set(0);
+    normalizedY.set(0);
+    element.dataset.tiltActive = 'false';
+  };
+
+  const enter = (event: PointerEvent<HTMLDivElement>): void => {
+    if (trackingEnabled && event.pointerType !== 'touch') {
+      bounds.current = event.currentTarget.getBoundingClientRect();
+      const token = getComputedStyle(event.currentTarget).getPropertyValue('--depth-max-rotate');
+      maxRotation.current = Number.parseFloat(token) || 4;
+      rawLift.set(-4);
+      event.currentTarget.dataset.tiltActive = 'true';
+    }
+    onPointerEnter?.(event);
+  };
+
+  const move = (event: PointerEvent<HTMLDivElement>): void => {
+    if (trackingEnabled && bounds.current && event.pointerType !== 'touch') {
+      const tilt = calculateTilt(event, bounds.current, Math.min(6, maxRotation.current));
+      rawRotateX.set(tilt.rotateX);
+      rawRotateY.set(tilt.rotateY);
+      normalizedX.set(tilt.normalizedX);
+      normalizedY.set(tilt.normalizedY);
+    }
+    onPointerMove?.(event);
+  };
+
+  return (
+    <motion.div
+      {...props}
+      className={cn('tilt-surface', className)}
+      data-depth={depth}
+      data-tilt-enabled={trackingEnabled ? 'true' : 'false'}
+      data-tilt-active="false"
+      style={{ ...(style ?? {}), rotateX, rotateY, y, boxShadow, transformPerspective: 'var(--depth-perspective)' }}
+      onPointerEnter={enter}
+      onPointerMove={move}
+      onPointerLeave={(event) => { reset(event.currentTarget); onPointerLeave?.(event); }}
+      onPointerCancel={(event) => { reset(event.currentTarget); onPointerCancel?.(event); }}
+      onPointerDown={(event) => { if (!reduceMotion && !trackingEnabled) rawLift.set(-2); onPointerDown?.(event); }}
+      onPointerUp={(event) => { if (!trackingEnabled) rawLift.set(0); onPointerUp?.(event); }}
+    >
+      {children}
+      {glare ? <motion.span className="tilt-glare" aria-hidden="true" style={{ background: glareBackground }} /> : null}
+    </motion.div>
+  );
+}
