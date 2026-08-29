@@ -1,8 +1,40 @@
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import { expect, test } from '@playwright/test';
+import { devices, expect, test } from '@playwright/test';
 
 const fixture = (name: string): string => resolve(process.cwd(), 'tests', 'fixtures', name);
+
+test('tilts only the focused upload surface under a fine pointer', async ({ page }) => {
+  await page.goto('/');
+  const surface = page.getByTestId('upload-tilt-surface');
+  const box = await surface.boundingBox();
+  expect(box).not.toBeNull();
+  if (!box) throw new Error('Upload tilt surface has no bounding box.');
+
+  await page.mouse.move(box.x + box.width - 8, box.y + 8);
+  await expect(surface).toHaveAttribute('data-tilt-active', 'true');
+  await expect.poll(() => surface.evaluate((element) => getComputedStyle(element).transform))
+    .not.toBe('none');
+
+  await page.mouse.move(1, 1);
+  await expect(surface).toHaveAttribute('data-tilt-active', 'false');
+  await expect(page.getByTestId('queue-tilt-surface')).toHaveAttribute('data-tilt-active', 'false');
+});
+
+test('uses static depth without page overflow on touch mobile', async ({ browser }) => {
+  const context = await browser.newContext({ ...devices['Pixel 5'] });
+  const page = await context.newPage();
+  await page.goto('http://127.0.0.1:5173/');
+
+  await expect(page.getByTestId('upload-tilt-surface')).toHaveAttribute('data-tilt-enabled', 'false');
+  const widths = await page.evaluate(() => ({
+    viewport: window.innerWidth,
+    page: document.documentElement.scrollWidth,
+  }));
+  expect(widths.page).toBeLessThanOrEqual(widths.viewport);
+
+  await context.close();
+});
 
 test('uploads and analyzes a transcript into structured meeting results', async ({ page }) => {
   await page.goto('/');

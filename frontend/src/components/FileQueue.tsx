@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/empty';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { TiltSurface } from '@/components/TiltSurface';
 
 interface FileQueueProps {
   disabled: boolean;
@@ -30,7 +31,8 @@ const fileSize = (bytes: number): string =>
 
 export function FileQueue({ disabled, files, onRemove }: FileQueueProps) {
   return (
-    <Card className="web-theme-panel h-full" aria-label="Uploaded files" role="region">
+    <TiltSurface data-testid="queue-tilt-surface" depth="strong" className="h-full" glare={false}>
+      <Card className="web-theme-panel h-full" aria-label="Uploaded files" role="region">
       <CardHeader className="border-b">
         <CardTitle>Uploaded files ({files.length})</CardTitle>
         <CardDescription>Add transcripts now or in another selection round.</CardDescription>
@@ -76,6 +78,7 @@ export function FileQueue({ disabled, files, onRemove }: FileQueueProps) {
           ))
         )}
       </CardContent>
-    </Card>
+      </Card>
+    </TiltSurface>
   );
 }

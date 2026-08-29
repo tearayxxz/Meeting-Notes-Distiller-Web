@@ -10,6 +10,7 @@ import { GlobalActions } from '@/components/GlobalActions';
 import { MeetingNavigator } from '@/components/MeetingNavigator';
 import { ProblemPanel } from '@/components/ProblemPanel';
 import { ThemeSwitcher } from '@/components/ThemeSwitcher';
+import { TiltSurface } from '@/components/TiltSurface';
 import { UploadZone } from '@/components/UploadZone';
 import { WebSlingerEffect, WebThemeBackground } from '@/components/WebSlingerEffects';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -188,13 +189,15 @@ export default function App() {
                 <TabsContent value="problems" className="mt-5"><ProblemPanel failures={analysis.failures} meetings={analysis.meetings} /></TabsContent>
               </Tabs>
 
-              <div className="report-panel web-theme-panel flex justify-center rounded-xl border bg-background p-4">
-                <Button className="report-button" variant="outline" size="lg" disabled={reporting} onClick={() => void downloadReport()}>
-                  {reporting ? <LoaderCircle className="animate-spin" data-icon="inline-start" aria-hidden="true" />
-                    : <Download data-icon="inline-start" aria-hidden="true" />}
-                  Download Word Report
-                </Button>
-              </div>
+              <TiltSurface data-testid="report-tilt-surface" depth="strong" glare={false}>
+                <div className="report-panel web-theme-panel flex justify-center rounded-xl border bg-background p-4">
+                  <Button className="report-button" variant="outline" size="lg" disabled={reporting} onClick={() => void downloadReport()}>
+                    {reporting ? <LoaderCircle className="animate-spin" data-icon="inline-start" aria-hidden="true" />
+                      : <Download data-icon="inline-start" aria-hidden="true" />}
+                    Download Word Report
+                  </Button>
+                </div>
+              </TiltSurface>
             </>
           ) : (
             <section className="empty-results web-theme-panel rounded-xl border border-dashed bg-background p-7 text-center">

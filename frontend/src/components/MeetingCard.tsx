@@ -4,6 +4,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { TiltSurface } from '@/components/TiltSurface';
 
 interface MeetingCardProps {
   meeting: MeetingAnalysis;
@@ -12,7 +13,8 @@ interface MeetingCardProps {
 
 export function MeetingCard({ meeting, index }: MeetingCardProps) {
   return (
-    <Card className="meeting-result-card web-theme-panel">
+    <TiltSurface data-testid="meeting-tilt-surface" depth="strong" glare={false}>
+      <Card className="meeting-result-card web-theme-panel">
       <CardHeader className="border-b">
         <div className="text-xs font-medium uppercase tracking-wide text-primary">Meeting {index + 1}</div>
         <CardTitle><h2>{meeting.fileName}</h2></CardTitle>
@@ -114,6 +116,7 @@ export function MeetingCard({ meeting, index }: MeetingCardProps) {
           )}
         </section>
       </CardContent>
-    </Card>
+      </Card>
+    </TiltSurface>
   );
 }

@@ -101,6 +101,16 @@ const localStorageDouble: Storage = {
 
 beforeEach(() => {
   Object.defineProperty(window, 'localStorage', { configurable: true, value: localStorageDouble });
+  vi.stubGlobal('matchMedia', vi.fn((query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })));
 });
 
 afterEach(() => {
@@ -119,6 +129,27 @@ describe('Meeting Notes Distiller dashboard', () => {
     expect(screen.getByText('Drop meeting transcripts here')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Analyze Meetings' })).toBeDisabled();
     expect(screen.getByText('No transcripts selected')).toBeInTheDocument();
+  });
+
+  it('applies focused depth to upload and analyzed-result surfaces', async () => {
+    const user = userEvent.setup();
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify(batch), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    })));
+    render(<App />);
+
+    expect(screen.getByTestId('upload-tilt-surface')).toHaveAttribute('data-depth', 'strong');
+    expect(screen.getByTestId('queue-tilt-surface')).toHaveAttribute('data-depth', 'strong');
+
+    await user.upload(
+      screen.getByLabelText('Choose transcript files'),
+      new File(['Alice: We decided to launch Friday.'], 'launch.txt', { type: 'text/plain' }),
+    );
+    await user.click(screen.getByRole('button', { name: 'Analyze Meetings' }));
+
+    expect(await screen.findByTestId('meeting-tilt-surface')).toHaveAttribute('data-depth', 'strong');
+    expect(screen.getByTestId('report-tilt-surface')).toHaveAttribute('data-depth', 'strong');
   });
 
   it('switches named themes, persists the choice, and launches the Web-Slinger effect', async () => {

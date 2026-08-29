@@ -29,7 +29,7 @@ export function MeetingNavigator({ meetings, selectedIndex, onSelect }: MeetingN
   const spring = reduceMotion ? { duration: 0 } : { type: 'spring' as const, stiffness: 260, damping: 30 };
 
   return (
-    <LazyMotion features={domAnimation} strict>
+    <LazyMotion features={domAnimation}>
       <div className="flex flex-col gap-5">
         <section aria-label="Meeting navigator" className="meeting-navigator-panel flex flex-col gap-4 rounded-xl border bg-muted/25 p-4 sm:p-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
